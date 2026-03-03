@@ -6,5 +6,6 @@ public class SellerInfoDto {
     public String email;
     public boolean verified;
     public String createdAt;
+    public String plan;
 }
 

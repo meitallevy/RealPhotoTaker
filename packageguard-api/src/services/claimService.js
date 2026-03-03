@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const db = require('../config/database');
+const { checkPlanLimit } = require('./planService');
 
 async function initiateClaim (payload) {
   const { sellerId, orderId, deviceInfo, attestationToken } = payload;
@@ -14,6 +15,14 @@ async function initiateClaim (payload) {
     throw err;
   }
   const seller = sellerRes.rows[0];
+
+  // ── Plan limit check (skip for MORE_INFO_REQUESTED re-opens) ─────────────
+  const planCheck = await checkPlanLimit(sellerId);
+  if (!planCheck.allowed) {
+    const err = new Error(planCheck.reason || 'Claim limit reached for your current plan');
+    err.status = 402;
+    throw err;
+  }
 
   // ── Check for an existing claim awaiting more info from this buyer ───────
   const moreInfoRes = await db.query(

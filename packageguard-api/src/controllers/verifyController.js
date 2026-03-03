@@ -32,20 +32,39 @@ function decisionInfo (decision) {
   }
 }
 
-function buildHtml (claim, dataUris, verificationUrl) {
+function aiVerdictChip (verdict) {
+  if (!verdict) return '';
+  const map = {
+    REAL:           { label: '\u2713 Real Photo',      bg: '#E8F5E9', color: '#1B5E20' },
+    AI_GENERATED:   { label: '\u26A0 AI Generated',    bg: '#FFEBEE', color: '#B71C1C' },
+    SCREEN_CAPTURE: { label: '\u26A0 Screen Capture',  bg: '#FFF3E0', color: '#E65100' },
+    UNCERTAIN:      { label: '\u2014 Unanalyzed',       bg: '#F4F6F9', color: '#546E7A' }
+  };
+  const v = map[verdict.toUpperCase()] || map.UNCERTAIN;
+  return `<div style="margin-top:6px;text-align:center">
+    <span class="chip" style="background:${v.bg};color:${v.color};font-size:11px;">${v.label}</span>
+  </div>`;
+}
+
+function buildHtml (claim, evidenceRows, verificationUrl) {
   const sigOk   = !!(claim.manifest_hash && claim.signature);
   const evCount = Number(claim.evidence_count || 0);
   const maskedOrder = claim.order_id
     ? `${claim.order_id.slice(0, 3)}****${claim.order_id.slice(-4)}`
     : '\u2014';
 
-  const photoGrid = dataUris.length === 0 ? '' : `
-      <div class="section-title">Evidence Photos (${dataUris.length})</div>
+  const dataUris = evidenceRows.map(e => fileToDataUri(e.file_path, e.mime_type));
+
+  const photoGrid = evidenceRows.length === 0 ? '' : `
+      <div class="section-title">Evidence Photos (${evidenceRows.length})</div>
       <div class="photo-grid">
-        ${dataUris.map((uri, i) => uri
-          ? `<div class="photo-card"><img src="${uri}" alt="Evidence ${i + 1}" /></div>`
-          : `<div class="photo-card no-photo">Photo ${i + 1}<br/>unavailable</div>`
-        ).join('\n        ')}
+        ${evidenceRows.map((e, i) => {
+          const uri = dataUris[i];
+          const img = uri
+            ? `<img src="${uri}" alt="Evidence ${i + 1}" />`
+            : `<div class="no-photo">Photo ${i + 1}<br/>unavailable</div>`;
+          return `<div class="photo-card">${img}${aiVerdictChip(e.ai_verdict)}</div>`;
+        }).join('\n        ')}
       </div>`;
 
   const dec = decisionInfo(claim.seller_decision);
@@ -141,10 +160,10 @@ function buildHtml (claim, dataUris, verificationUrl) {
       border-left: 3px solid #90A4AE;
     }
     .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: #546E7A; margin-bottom: 14px; }
-    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-    .photo-card { border-radius: 10px; overflow: hidden; aspect-ratio: 1; background: #F4F6F9; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .photo-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .no-photo { display: flex; align-items: center; justify-content: center; font-size: 12px; color: #90A4AE; text-align: center; padding: 8px; }
+    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+    .photo-card { border-radius: 10px; overflow: hidden; background: #F4F6F9; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding-bottom: 8px; }
+    .photo-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+    .no-photo { display: flex; align-items: center; justify-content: center; font-size: 12px; color: #90A4AE; text-align: center; padding: 24px 8px; aspect-ratio: 1; }
     .footer { text-align: center; padding: 20px 16px; font-size: 12px; color: #90A4AE; border-top: 1px solid #E0E0E0; margin-top: 8px; }
     .footer a { color: #1565C0; }
     @media print {
@@ -293,19 +312,20 @@ async function publicVerify (req, res, next) {
 
     const verificationUrl = `${PUBLIC_BASE_URL}/v1/verify/${claimId}`;
 
+    // Fetch evidence rows (used by both HTML and JSON paths)
+    const evidenceRes = await db.query(
+      `SELECT file_path, mime_type, ai_verdict, ai_confidence, ai_details
+       FROM evidence_items
+       WHERE claim_id = (SELECT id FROM claims WHERE claim_id = $1)
+       ORDER BY sequence_number ASC`,
+      [claimId]
+    );
+    const evidenceRows = evidenceRes.rows;
+
     // Browser request → HTML report
     if (req.accepts('html')) {
-      const evidenceRes = await db.query(
-        `SELECT file_path, mime_type FROM evidence_items
-         WHERE claim_id = (SELECT id FROM claims WHERE claim_id = $1)
-         ORDER BY sequence_number ASC`,
-        [claimId]
-      );
-      const dataUris = evidenceRes.rows.map(e =>
-        fileToDataUri(e.file_path, e.mime_type)
-      );
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return res.send(buildHtml(claim, dataUris, verificationUrl));
+      return res.send(buildHtml(claim, evidenceRows, verificationUrl));
     }
 
     // API / JSON request
@@ -332,7 +352,13 @@ async function publicVerify (req, res, next) {
         ? { decision: claim.seller_decision, note: claim.seller_note, decidedAt: claim.seller_decided_at }
         : null,
       attestation: claim.attestation_result || {},
-      evidenceThumbnails: []
+      evidence: evidenceRows.map(e => ({
+        aiAnalysis: e.ai_verdict ? {
+          verdict:    e.ai_verdict,
+          confidence: e.ai_confidence != null ? Number(e.ai_confidence) : null,
+          details:    e.ai_details
+        } : null
+      }))
     });
   } catch (err) {
     next(err);

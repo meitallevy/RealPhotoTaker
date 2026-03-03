@@ -99,7 +99,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Buyer link card -->
+            <!-- Seller ID card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -117,28 +117,28 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="BUYER LINK"
+                        android:text="YOUR SELLER ID"
                         android:textSize="11sp"
                         android:textStyle="bold"
                         android:letterSpacing="0.08"
                         android:textColor="@color/text_secondary"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_marginBottom="10dp" />
 
                     <TextView
-                        android:id="@+id/textDeepLink"
+                        android:id="@+id/textSellerIdValue"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Loading..."
-                        android:textSize="13sp"
+                        android:textSize="18sp"
                         android:fontFamily="monospace"
                         android:textColor="@color/brand_primary"
                         android:layout_marginBottom="14dp" />
 
                     <Button
-                        android:id="@+id/buttonShareLink"
+                        android:id="@+id/buttonCopySellerId"
                         android:layout_width="match_parent"
                         android:layout_height="52dp"
-                        android:text="Share Buyer Link"
+                        android:text="Copy Seller ID"
                         android:backgroundTint="@color/brand_secondary" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

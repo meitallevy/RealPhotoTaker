@@ -20,11 +20,11 @@ public class SellerDashboardViewModel extends ViewModel {
     private final PackageGuardApi api;
     private final SessionManager sessionManager;
 
-    private final MutableLiveData<String> sellerName = new MutableLiveData<>("-");
+    private final MutableLiveData<String> sellerName  = new MutableLiveData<>("-");
     private final MutableLiveData<String> sellerEmail = new MutableLiveData<>("");
-    private final MutableLiveData<String> statsText = new MutableLiveData<>("Loading...");
-    private final MutableLiveData<String> deepLink = new MutableLiveData<>("");
-    private final MutableLiveData<String> error = new MutableLiveData<>();
+    private final MutableLiveData<String> statsText   = new MutableLiveData<>("Loading...");
+    private final MutableLiveData<String> sellerId    = new MutableLiveData<>("");
+    private final MutableLiveData<String> error       = new MutableLiveData<>();
 
     @Inject
     public SellerDashboardViewModel(PackageGuardApi api, SessionManager sessionManager) {
@@ -32,16 +32,11 @@ public class SellerDashboardViewModel extends ViewModel {
         this.sessionManager = sessionManager;
     }
 
-    public LiveData<String> getSellerName() { return sellerName; }
-
+    public LiveData<String> getSellerName()  { return sellerName; }
     public LiveData<String> getSellerEmail() { return sellerEmail; }
-
-    public LiveData<String> getStatsText() { return statsText; }
-
-    public LiveData<String> getDeepLink() { return deepLink; }
-
-    public LiveData<String> getError() { return error; }
-
+    public LiveData<String> getStatsText()   { return statsText; }
+    public LiveData<String> getSellerId()    { return sellerId; }
+    public LiveData<String> getError()       { return error; }
     public SessionManager getSessionManager() { return sessionManager; }
 
     public void loadDashboard() {
@@ -62,24 +57,28 @@ public class SellerDashboardViewModel extends ViewModel {
                                 ? body.seller.businessName : "-");
                         sellerEmail.setValue(body.seller.email != null
                                 ? body.seller.email : "");
+                        if (body.seller.sellerId != null) {
+                            sellerId.setValue(body.seller.sellerId);
+                        }
                     }
                     if (body.stats != null) {
                         statsText.setValue(
-                                "Total claims: " + body.stats.totalClaims
+                                "Today: "       + body.stats.claimsToday
+                                + "  \u2022  This week: "  + body.stats.claimsThisWeek
                                 + "\nThis month: " + body.stats.claimsThisMonth
+                                + "  \u2022  Total: "      + body.stats.claimsTotal
                         );
-                    }
-                    if (body.qrCode != null && body.qrCode.deepLink != null) {
-                        deepLink.setValue(body.qrCode.deepLink);
                     }
                 } else {
                     statsText.setValue("Failed: " + response.code());
+                    error.setValue("Failed to load dashboard: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(Call<SellerDashboardResponse> call, Throwable t) {
-                statsText.setValue("Error: " + t.getMessage());
+                statsText.setValue("Network error");
+                error.setValue("Network error: " + t.getMessage());
             }
         });
     }

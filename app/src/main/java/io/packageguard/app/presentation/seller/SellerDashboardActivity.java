@@ -1,5 +1,8 @@
 package io.packageguard.app.presentation.seller;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -26,28 +29,38 @@ public class SellerDashboardActivity extends AppCompatActivity {
 
         viewModel = new ViewModelProvider(this).get(SellerDashboardViewModel.class);
 
-        TextView textSellerName = findViewById(R.id.textSellerName);
-        TextView textSellerEmail = findViewById(R.id.textSellerEmail);
-        TextView textStats = findViewById(R.id.textStats);
-        TextView textDeepLink = findViewById(R.id.textDeepLink);
-        Button buttonRefresh = findViewById(R.id.buttonRefresh);
-        Button buttonViewClaims = findViewById(R.id.buttonViewClaims);
-        Button buttonShareLink = findViewById(R.id.buttonShareLink);
-        Button buttonLogout = findViewById(R.id.buttonLogout);
+        TextView textSellerName    = findViewById(R.id.textSellerName);
+        TextView textSellerEmail   = findViewById(R.id.textSellerEmail);
+        TextView textStats         = findViewById(R.id.textStats);
+        TextView textSellerIdValue = findViewById(R.id.textSellerIdValue);
+        Button buttonCopySellerId  = findViewById(R.id.buttonCopySellerId);
+        Button buttonRefresh       = findViewById(R.id.buttonRefresh);
+        Button buttonViewClaims    = findViewById(R.id.buttonViewClaims);
+        Button buttonLogout        = findViewById(R.id.buttonLogout);
 
         viewModel.getSellerName().observe(this, name ->
                 textSellerName.setText("Welcome, " + name));
         viewModel.getSellerEmail().observe(this, textSellerEmail::setText);
         viewModel.getStatsText().observe(this, textStats::setText);
-        viewModel.getDeepLink().observe(this, link -> {
-            textDeepLink.setText("Buyer link: " + link);
+        viewModel.getSellerId().observe(this, id -> {
+            if (id != null && !id.isEmpty()) {
+                textSellerIdValue.setText(id);
+            }
         });
         viewModel.getError().observe(this, err -> {
             if (err != null && !err.isEmpty()) {
                 Toast.makeText(this, err, Toast.LENGTH_LONG).show();
-                // If not authenticated, go back to login
                 startActivity(new Intent(this, LoginActivity.class));
                 finish();
+            }
+        });
+
+        buttonCopySellerId.setOnClickListener(v -> {
+            String id = viewModel.getSellerId().getValue();
+            if (id != null && !id.isEmpty()) {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                clipboard.setPrimaryClip(ClipData.newPlainText("Seller ID", id));
+                Toast.makeText(this, "Seller ID copied!", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -55,19 +68,6 @@ public class SellerDashboardActivity extends AppCompatActivity {
 
         buttonViewClaims.setOnClickListener(v ->
                 startActivity(new Intent(this, SellerClaimsActivity.class)));
-
-        buttonShareLink.setOnClickListener(v -> {
-            String link = viewModel.getDeepLink().getValue();
-            if (link != null && !link.isEmpty()) {
-                Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.setType("text/plain");
-                shareIntent.putExtra(Intent.EXTRA_TEXT,
-                        "Use this link to document your package: " + link);
-                startActivity(Intent.createChooser(shareIntent, "Share PackageGuard link"));
-            } else {
-                Toast.makeText(this, "Link not available yet", Toast.LENGTH_SHORT).show();
-            }
-        });
 
         buttonLogout.setOnClickListener(v -> {
             viewModel.getSessionManager().logout();

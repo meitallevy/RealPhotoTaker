@@ -1,5 +1,6 @@
 const fs = require('fs');
 const db = require('../config/database');
+const { getClaimCounts } = require('../services/planService');
 
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://localhost:4000';
 
@@ -8,7 +9,8 @@ async function getDashboard (req, res, next) {
     const sellerId = req.user.sellerId;
 
     const sellerRes = await db.query(
-      `SELECT s.seller_id, s.business_name, s.country, s.created_at,
+      `SELECT s.id, s.seller_id, s.business_name, s.country, s.created_at, s.plan,
+              s.plan_daily_limit, s.plan_monthly_limit, s.plan_total_limit,
               u.email, u.email_verified
        FROM sellers s
        JOIN users u ON u.id = s.user_id
@@ -22,15 +24,7 @@ async function getDashboard (req, res, next) {
     }
     const seller = sellerRes.rows[0];
 
-    const statsRes = await db.query(
-      `SELECT
-         COUNT(*) AS total_claims,
-         COUNT(*) FILTER (WHERE c.created_at >= NOW() - INTERVAL '30 days') AS claims_this_month
-       FROM claims c
-       WHERE c.seller_id = (SELECT id FROM sellers WHERE seller_id = $1)`,
-      [sellerId]
-    );
-    const statsRow = statsRes.rows[0];
+    const counts = await getClaimCounts(seller.id);
 
     res.json({
       seller: {
@@ -38,11 +32,21 @@ async function getDashboard (req, res, next) {
         businessName: seller.business_name,
         email: seller.email,
         verified: seller.email_verified,
-        createdAt: seller.created_at
+        createdAt: seller.created_at,
+        plan: seller.plan || 'trial'
       },
       stats: {
-        totalClaims: Number(statsRow.total_claims || 0),
-        claimsThisMonth: Number(statsRow.claims_this_month || 0)
+        claimsToday:     counts.today,
+        claimsThisWeek:  counts.thisWeek,
+        claimsThisMonth: counts.thisMonth,
+        claimsTotal:     counts.total,
+        // Legacy field kept for backwards compatibility
+        totalClaims:     counts.total
+      },
+      planLimits: {
+        daily:   seller.plan_daily_limit,
+        monthly: seller.plan_monthly_limit,
+        total:   seller.plan_total_limit
       },
       qrCode: {
         dataUrl: null,
@@ -149,14 +153,13 @@ async function getClaimDetail (req, res, next) {
     }
 
     const evidenceRes = await db.query(
-      `SELECT evidence_id, step_id, file_hash, captured_at, resolution, mime_type, file_path
+      `SELECT evidence_id, step_id, file_hash, captured_at, resolution, mime_type, file_path,
+              ai_verdict, ai_confidence, ai_details
        FROM evidence_items
        WHERE claim_id = (SELECT id FROM claims WHERE claim_id = $1)
        ORDER BY sequence_number ASC`,
       [claimId]
     );
-
-    const riskFactors = claim.risk_factors || ['Evidence captured within nonce window'];
 
     res.json({
       claim: {
@@ -165,7 +168,6 @@ async function getClaimDetail (req, res, next) {
         status: claim.status,
         submittedAt: claim.created_at,
         buyerNotes: claim.buyer_notes,
-        riskFactors,
         sellerViewedAt: claim.seller_viewed_at,
         sellerDecision: claim.seller_decision,
         sellerNote: claim.seller_note,
@@ -182,7 +184,12 @@ async function getClaimDetail (req, res, next) {
         metadata: {
           resolution: e.resolution,
           mimeType: e.mime_type
-        }
+        },
+        aiAnalysis: e.ai_verdict ? {
+          verdict:    e.ai_verdict,
+          confidence: e.ai_confidence != null ? Number(e.ai_confidence) : null,
+          details:    e.ai_details
+        } : null
       })),
       verification: {
         manifestHash: claim.manifest_hash,
