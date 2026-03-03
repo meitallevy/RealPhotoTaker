@@ -2,24 +2,72 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/bg_screen">
 
-    <TextView
+    <!-- Toolbar -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Claims"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:padding="16dp"
-        android:background="#FFFFFF"
-        android:elevation="2dp" />
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:background="@color/brand_primary"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:elevation="4dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Claims"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/progressBarClaims"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/brand_secondary"
         android:visibility="gone" />
+
+    <!-- Simple tabs: Open / Resolved -->
+    <LinearLayout
+        android:id="@+id/tabBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/bg_surface"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
+
+        <TextView
+            android:id="@+id/tabOpen"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Open"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingVertical="6dp"
+            android:background="@drawable/bg_chip"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:id="@+id/tabResolved"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Resolved"
+            android:textSize="14sp"
+            android:paddingVertical="6dp"
+            android:textColor="@color/text_secondary" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/textEmptyClaims"
@@ -27,15 +75,18 @@
         android:layout_height="wrap_content"
         android:text="No claims yet"
         android:textSize="16sp"
-        android:textColor="#888888"
+        android:textColor="@color/text_hint"
         android:gravity="center"
-        android:padding="32dp"
+        android:padding="48dp"
         android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerClaims"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="8dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:clipToPadding="false" />
 
 </LinearLayout>

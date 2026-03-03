@@ -8,6 +8,4 @@ public class ClaimResultDto {
     public String verificationUrl;
     public String pdfReportUrl;
     public boolean sellerNotified;
-    public int riskScore;
-    public String attestationVerdict;
 }

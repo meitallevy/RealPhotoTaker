@@ -2,4 +2,14 @@
 <resources>
     <string name="app_name">PackageGuard</string>
     <string name="step_progress">Step %1$d of %2$d</string>
+
+    <!-- Buyer more info -->
+    <string name="more_info_toolbar_title">More Information Needed</string>
+    <string name="more_info_title">The seller requested more information</string>
+    <string name="more_info_message">Your seller has reviewed your original evidence and needs a bit more detail before they can make a final decision. Please add extra photos and context so they can resolve your claim.</string>
+    <string name="more_info_seller_note_label">Note from your seller</string>
+    <string name="more_info_hint">Focus on clearly showing any damage, packaging, and labels that help explain the situation.</string>
+    <string name="more_info_add_more_button">Add More Photos &amp; Info</string>
+    <string name="more_info_cancel_button">Cancel</string>
 </resources>
+

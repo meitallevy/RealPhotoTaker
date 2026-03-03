@@ -6,7 +6,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -56,8 +55,6 @@ public class GuidedCaptureActivity extends AppCompatActivity {
     public static final String RESULT_FILE_PATHS = "filePaths";
 
     private PreviewView previewView;
-    private TextView textNonce;
-    private TextView textCountdown;
     private TextView textInstruction;
     private TextView textStepProgress;
     private LinearLayout thumbnailContainer;
@@ -65,7 +62,6 @@ public class GuidedCaptureActivity extends AppCompatActivity {
     private Button buttonDone;
 
     private ImageCapture imageCapture;
-    private CountDownTimer countDownTimer;
 
     private String claimId;
     private List<CaptureStepDto> steps;
@@ -79,8 +75,6 @@ public class GuidedCaptureActivity extends AppCompatActivity {
         setContentView(R.layout.activity_guided_capture);
 
         previewView = findViewById(R.id.previewView);
-        textNonce = findViewById(R.id.textNonce);
-        textCountdown = findViewById(R.id.textCountdown);
         textInstruction = findViewById(R.id.textInstruction);
         textStepProgress = findViewById(R.id.textStepProgress);
         thumbnailContainer = findViewById(R.id.thumbnailContainer);
@@ -93,12 +87,6 @@ public class GuidedCaptureActivity extends AppCompatActivity {
         minPhotos = getIntent().getIntExtra(EXTRA_MIN_PHOTOS, 1);
 
         steps = buildDefaultSteps();
-
-        textNonce.setText(nonce != null ? "CODE: " + nonce : "CODE: ------");
-
-        if (nonceExpiresAt != null) {
-            startCountdown(nonceExpiresAt);
-        }
 
         updateStepUI();
 
@@ -237,38 +225,6 @@ public class GuidedCaptureActivity extends AppCompatActivity {
         buttonDone.setAlpha(canFinish ? 1.0f : 0.5f);
     }
 
-    private void startCountdown(String nonceExpiresAt) {
-        long expiryMs;
-        try {
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-            df.setTimeZone(TimeZone.getTimeZone("UTC"));
-            Date expiryDate = df.parse(nonceExpiresAt);
-            expiryMs = expiryDate != null ? expiryDate.getTime() - System.currentTimeMillis() : 300_000L;
-        } catch (Exception e) {
-            expiryMs = 300_000L;
-        }
-
-        if (expiryMs <= 0) {
-            textCountdown.setText("Expired");
-            return;
-        }
-
-        countDownTimer = new CountDownTimer(expiryMs, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                long secs = millisUntilFinished / 1000;
-                textCountdown.setText(String.format(Locale.US, "%d:%02d", secs / 60, secs % 60));
-            }
-
-            @Override
-            public void onFinish() {
-                textCountdown.setText("Expired");
-                Toast.makeText(GuidedCaptureActivity.this,
-                        "Session expired — please start again.", Toast.LENGTH_LONG).show();
-            }
-        }.start();
-    }
-
     private void finishCapture() {
         Intent result = new Intent();
         result.putStringArrayListExtra(RESULT_FILE_PATHS, new ArrayList<>(capturedPaths));
@@ -294,6 +250,5 @@ public class GuidedCaptureActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (countDownTimer != null) countDownTimer.cancel();
     }
 }

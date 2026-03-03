@@ -1,8 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
+    <!-- Brand blues -->
+    <color name="brand_primary">#1565C0</color>
+    <color name="brand_primary_dark">#003c8f</color>
+    <color name="brand_primary_light">#5e92f3</color>
+    <color name="brand_secondary">#00838F</color>
+    <color name="brand_secondary_dark">#005662</color>
+
+    <!-- Backgrounds -->
+    <color name="bg_screen">#F4F6F9</color>
+    <color name="bg_surface">#FFFFFF</color>
+
+    <!-- Claim status -->
+    <color name="status_completed">#1B5E20</color>
+    <color name="status_completed_bg">#E8F5E9</color>
+    <color name="status_pending">#E65100</color>
+    <color name="status_pending_bg">#FFF3E0</color>
+    <color name="status_processing">#1565C0</color>
+    <color name="status_processing_bg">#E3F2FD</color>
+    <color name="status_failed">#B71C1C</color>
+    <color name="status_failed_bg">#FFEBEE</color>
+
+    <!-- Seller decision -->
+    <color name="decision_approved">#1B5E20</color>
+    <color name="decision_approved_bg">#E8F5E9</color>
+    <color name="decision_rejected">#B71C1C</color>
+    <color name="decision_rejected_bg">#FFEBEE</color>
+    <color name="decision_moreinfo">#E65100</color>
+    <color name="decision_moreinfo_bg">#FFF3E0</color>
+
+    <!-- Text -->
+    <color name="text_primary">#1A1A2E</color>
+    <color name="text_secondary">#546E7A</color>
+    <color name="text_hint">#90A4AE</color>
+
+    <!-- Utility -->
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
+    <color name="divider">#E0E0E0</color>
+
+    <!-- Legacy aliases -->
+    <color name="purple_500">#1565C0</color>
+    <color name="purple_700">#003c8f</color>
+    <color name="teal_200">#00838F</color>
 </resources>

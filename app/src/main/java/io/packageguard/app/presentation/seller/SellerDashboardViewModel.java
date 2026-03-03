@@ -67,8 +67,6 @@ public class SellerDashboardViewModel extends ViewModel {
                         statsText.setValue(
                                 "Total claims: " + body.stats.totalClaims
                                 + "\nThis month: " + body.stats.claimsThisMonth
-                                + "\nAvg risk score: " + body.stats.averageRiskScore
-                                + "\nHigh-risk claims: " + body.stats.highRiskClaims
                         );
                     }
                     if (body.qrCode != null && body.qrCode.deepLink != null) {

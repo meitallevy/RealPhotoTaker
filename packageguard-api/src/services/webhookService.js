@@ -46,7 +46,6 @@ async function sendClaimCompletedWebhook (seller, claim) {
       claimId: claim.claim_id,
       orderId: claim.order_id,
       evidenceCount: claim.evidence_count || 0,
-      riskScore: claim.risk_score || 0,
       verificationUrl: `https://verify.packageguard.io/${claim.claim_id}`,
       pdfReportUrl: claim.pdf_url
     }

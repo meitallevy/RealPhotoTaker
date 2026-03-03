@@ -3,7 +3,6 @@ package io.packageguard.app.presentation.claim;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,10 +12,6 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
-
-import com.google.gson.Gson;
-
-import java.util.List;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import io.packageguard.app.R;
@@ -76,15 +71,28 @@ public class ClaimEntryActivity extends AppCompatActivity {
     }
 
     private void onClaimInitiated(ClaimInitiateResponse response) {
-        // Fetch capture config, then launch guided capture
+        String sellerId = editSellerId.getText().toString().trim();
+        String orderId = editOrderId.getText().toString().trim();
+
+        if (response.moreInfoRequested) {
+            // Redirect buyers to a dedicated screen explaining the seller's request
+            Intent intent = new Intent(this, BuyerMoreInfoActivity.class);
+            intent.putExtra(BuyerMoreInfoActivity.EXTRA_CLAIM_ID, response.claimId);
+            intent.putExtra(BuyerMoreInfoActivity.EXTRA_NONCE, response.nonce);
+            intent.putExtra(BuyerMoreInfoActivity.EXTRA_NONCE_EXPIRES_AT, response.nonceExpiresAt);
+            intent.putExtra(BuyerMoreInfoActivity.EXTRA_SELLER_NOTE, response.sellerNote);
+            intent.putExtra(BuyerMoreInfoActivity.EXTRA_SELLER_ID, sellerId);
+            intent.putExtra(BuyerMoreInfoActivity.EXTRA_ORDER_ID, orderId);
+            startActivityForResult(intent, GuidedCaptureActivity.REQUEST_CAPTURE);
+            return;
+        }
+
+        // Fresh claim: go directly into guided capture
         Intent intent = new Intent(this, GuidedCaptureActivity.class);
         intent.putExtra(GuidedCaptureActivity.EXTRA_CLAIM_ID, response.claimId);
         intent.putExtra(GuidedCaptureActivity.EXTRA_NONCE, response.nonce);
         intent.putExtra(GuidedCaptureActivity.EXTRA_NONCE_EXPIRES_AT, response.nonceExpiresAt);
         intent.putExtra(GuidedCaptureActivity.EXTRA_MIN_PHOTOS, 1);
-
-        // Pass seller ID so GuidedCapture can fetch config
-        String sellerId = editSellerId.getText().toString().trim();
         intent.putExtra(GuidedCaptureActivity.EXTRA_SELLER_ID, sellerId);
 
         startActivityForResult(intent, GuidedCaptureActivity.REQUEST_CAPTURE);

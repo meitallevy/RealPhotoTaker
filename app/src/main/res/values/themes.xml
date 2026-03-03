@@ -1,10 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorPrimary">@color/brand_primary</item>
+        <item name="colorPrimaryVariant">@color/brand_primary_dark</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondary">@color/brand_secondary</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:windowBackground">@color/bg_screen</item>
+        <item name="android:statusBarColor">@color/brand_primary_dark</item>
+    </style>
+
+    <!-- Toolbar style shared across seller screens -->
+    <style name="AppToolbar" parent="Widget.MaterialComponents.Toolbar">
+        <item name="android:background">@color/brand_primary</item>
+        <item name="android:elevation">4dp</item>
+        <item name="titleTextColor">@color/white</item>
+    </style>
+
+    <!-- Button styles -->
+    <style name="Button.Approve" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/decision_approved</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="Button.Reject" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/decision_rejected</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="Button.MoreInfo" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/decision_moreinfo</item>
+        <item name="android:textColor">@color/white</item>
     </style>
 </resources>

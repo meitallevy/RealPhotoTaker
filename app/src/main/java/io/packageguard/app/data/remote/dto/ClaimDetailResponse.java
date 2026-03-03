@@ -12,6 +12,10 @@ public class ClaimDetailResponse {
         public String status;
         public String submittedAt;
         public String buyerNotes;
-        public int riskScore;
+        // Seller review fields
+        public String sellerViewedAt;
+        public String sellerDecision;
+        public String sellerNote;
+        public String sellerDecidedAt;
     }
 }

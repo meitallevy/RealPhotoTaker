@@ -25,9 +25,7 @@ async function getDashboard (req, res, next) {
     const statsRes = await db.query(
       `SELECT
          COUNT(*) AS total_claims,
-         COUNT(*) FILTER (WHERE c.created_at >= NOW() - INTERVAL '30 days') AS claims_this_month,
-         COALESCE(AVG(c.risk_score), 0) AS average_risk_score,
-         COUNT(*) FILTER (WHERE c.risk_score >= 70) AS high_risk_claims
+         COUNT(*) FILTER (WHERE c.created_at >= NOW() - INTERVAL '30 days') AS claims_this_month
        FROM claims c
        WHERE c.seller_id = (SELECT id FROM sellers WHERE seller_id = $1)`,
       [sellerId]
@@ -44,9 +42,7 @@ async function getDashboard (req, res, next) {
       },
       stats: {
         totalClaims: Number(statsRow.total_claims || 0),
-        claimsThisMonth: Number(statsRow.claims_this_month || 0),
-        averageRiskScore: Math.round(Number(statsRow.average_risk_score || 0)),
-        highRiskClaims: Number(statsRow.high_risk_claims || 0)
+        claimsThisMonth: Number(statsRow.claims_this_month || 0)
       },
       qrCode: {
         dataUrl: null,
@@ -91,7 +87,7 @@ async function getClaims (req, res, next) {
     params.push(limit, offset);
 
     const claimsRes = await db.query(
-      `SELECT c.claim_id, c.order_id, c.status, c.risk_score, c.created_at,
+      `SELECT c.claim_id, c.order_id, c.status, c.created_at,
               (SELECT COUNT(*) FROM evidence_items e WHERE e.claim_id = c.id) AS evidence_count
        FROM claims c
        WHERE c.seller_id = (SELECT id FROM sellers WHERE seller_id = $1)${whereExtra}
@@ -106,7 +102,6 @@ async function getClaims (req, res, next) {
         orderId: c.order_id,
         status: c.status,
         evidenceCount: Number(c.evidence_count || 0),
-        riskScore: c.risk_score,
         submittedAt: c.created_at,
         verificationUrl: `${PUBLIC_BASE_URL}/v1/verify/${c.claim_id}`,
         thumbnailUrl: null
@@ -130,7 +125,8 @@ async function getClaimDetail (req, res, next) {
 
     const claimRes = await db.query(
       `SELECT c.claim_id, c.order_id, c.status, c.created_at, c.buyer_notes,
-              c.risk_score, c.risk_factors, c.manifest_hash, c.signature, c.signed_at, c.pdf_url
+              c.risk_factors, c.manifest_hash, c.signature, c.signed_at, c.pdf_url,
+              c.seller_viewed_at, c.seller_decision, c.seller_note, c.seller_decided_at
        FROM claims c
        WHERE c.claim_id = $1
          AND c.seller_id = (SELECT id FROM sellers WHERE seller_id = $2)`,
@@ -142,6 +138,15 @@ async function getClaimDetail (req, res, next) {
       throw err;
     }
     const claim = claimRes.rows[0];
+
+    // Auto-mark as viewed on first open
+    if (!claim.seller_viewed_at) {
+      await db.query(
+        'UPDATE claims SET seller_viewed_at = NOW() WHERE claim_id = $1',
+        [claimId]
+      );
+      claim.seller_viewed_at = new Date().toISOString();
+    }
 
     const evidenceRes = await db.query(
       `SELECT evidence_id, step_id, file_hash, captured_at, resolution, mime_type, file_path
@@ -160,8 +165,11 @@ async function getClaimDetail (req, res, next) {
         status: claim.status,
         submittedAt: claim.created_at,
         buyerNotes: claim.buyer_notes,
-        riskScore: claim.risk_score,
-        riskFactors
+        riskFactors,
+        sellerViewedAt: claim.seller_viewed_at,
+        sellerDecision: claim.seller_decision,
+        sellerNote: claim.seller_note,
+        sellerDecidedAt: claim.seller_decided_at
       },
       evidence: evidenceRes.rows.map(e => ({
         evidenceId: e.evidence_id,
@@ -278,10 +286,76 @@ async function getEvidenceImage (req, res, next) {
   }
 }
 
+async function reviewClaim (req, res, next) {
+  try {
+    const sellerId = req.user.sellerId;
+    const { claimId } = req.params;
+    const { decision, note } = req.body;
+
+    const validDecisions = ['APPROVED', 'REJECTED', 'MORE_INFO_REQUESTED'];
+    if (!decision || !validDecisions.includes(decision)) {
+      const err = new Error('Invalid decision. Must be APPROVED, REJECTED, or MORE_INFO_REQUESTED');
+      err.status = 400;
+      throw err;
+    }
+
+    // Verify claim belongs to this seller and fetch webhook URL
+    const claimCheck = await db.query(
+      `SELECT c.claim_id, c.order_id, s.webhook_url
+       FROM claims c
+       JOIN sellers s ON s.id = c.seller_id
+       WHERE c.claim_id = $1
+         AND c.seller_id = (SELECT id FROM sellers WHERE seller_id = $2)`,
+      [claimId, sellerId]
+    );
+    if (claimCheck.rowCount === 0) {
+      const err = new Error('Claim not found');
+      err.status = 404;
+      throw err;
+    }
+    const row = claimCheck.rows[0];
+
+    const decidedAt = new Date().toISOString();
+    await db.query(
+      `UPDATE claims
+       SET seller_decision = $1, seller_note = $2, seller_decided_at = NOW(),
+           seller_viewed_at = COALESCE(seller_viewed_at, NOW())
+       WHERE claim_id = $3`,
+      [decision, note || null, claimId]
+    );
+
+    // Fire webhook fire-and-forget if MORE_INFO_REQUESTED and URL is configured
+    if (decision === 'MORE_INFO_REQUESTED' && row.webhook_url) {
+      const payload = JSON.stringify({
+        event: 'SELLER_REVIEW',
+        claimId: row.claim_id,
+        orderId: row.order_id,
+        decision,
+        note: note || null,
+        decidedAt
+      });
+      fetch(row.webhook_url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        signal: AbortSignal.timeout(8000)
+      }).catch(err => {
+        // eslint-disable-next-line no-console
+        console.warn(`Webhook to ${row.webhook_url} failed: ${err.message}`);
+      });
+    }
+
+    res.json({ updated: true, decision, note: note || null, decidedAt });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getDashboard,
   getClaims,
   getClaimDetail,
   getEvidenceImage,
-  updateSettings
+  updateSettings,
+  reviewClaim
 };

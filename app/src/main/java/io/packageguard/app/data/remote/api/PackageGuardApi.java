@@ -15,6 +15,8 @@ import io.packageguard.app.data.remote.dto.EvidenceUploadResponse;
 import io.packageguard.app.data.remote.dto.ClaimDetailResponse;
 import io.packageguard.app.data.remote.dto.SellerClaimsListResponse;
 import io.packageguard.app.data.remote.dto.SellerDashboardResponse;
+import io.packageguard.app.data.remote.dto.SellerReviewRequest;
+import io.packageguard.app.data.remote.dto.SellerReviewResponse;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
@@ -22,6 +24,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.Multipart;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
@@ -92,5 +95,12 @@ public interface PackageGuardApi {
             @Header("Authorization") String bearer,
             @Query("page") int page,
             @Query("limit") int limit
+    );
+
+    @PATCH("/v1/seller/claims/{claimId}/review")
+    Call<SellerReviewResponse> reviewClaim(
+            @Header("Authorization") String bearer,
+            @Path("claimId") String claimId,
+            @Body SellerReviewRequest body
     );
 }

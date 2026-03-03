@@ -31,6 +31,8 @@ public class SellerClaimsActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.recyclerClaims);
         ProgressBar progressBar = findViewById(R.id.progressBarClaims);
         TextView textEmpty = findViewById(R.id.textEmptyClaims);
+        TextView tabOpen = findViewById(R.id.tabOpen);
+        TextView tabResolved = findViewById(R.id.tabResolved);
 
         ClaimsAdapter adapter = new ClaimsAdapter(item -> {
             Intent intent = new Intent(this, SellerClaimDetailActivity.class);
@@ -53,10 +55,25 @@ public class SellerClaimsActivity extends AppCompatActivity {
 
         viewModel.getClaimsList().observe(this, response -> {
             if (response != null && response.claims != null) {
-                adapter.setClaims(response.claims);
+                adapter.setAllClaims(response.claims);
                 textEmpty.setVisibility(response.claims.isEmpty() ? View.VISIBLE : View.GONE);
             }
         });
+
+        // Simple client-side tabs: Open vs Resolved (approved/rejected)
+        tabOpen.setOnClickListener(v -> {
+            adapter.showOpen();
+            tabOpen.setTextColor(getResources().getColor(R.color.text_primary));
+            tabResolved.setTextColor(getResources().getColor(R.color.text_secondary));
+        });
+        tabResolved.setOnClickListener(v -> {
+            adapter.showResolved();
+            tabResolved.setTextColor(getResources().getColor(R.color.text_primary));
+            tabOpen.setTextColor(getResources().getColor(R.color.text_secondary));
+        });
+
+        // Default to Open tab
+        adapter.showOpen();
 
         viewModel.loadClaims();
     }

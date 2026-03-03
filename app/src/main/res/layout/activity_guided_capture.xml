@@ -16,44 +16,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Nonce overlay — prominent amber strip at the top -->
-    <LinearLayout
-        android:id="@+id/nonceOverlay"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#DDFEF3C7"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="10dp"
-        android:gravity="center_vertical"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <TextView
-            android:id="@+id/textNonce"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="CODE: 839274"
-            android:textSize="26sp"
-            android:textStyle="bold"
-            android:textColor="#78350F"
-            android:letterSpacing="0.1"
-            android:gravity="center" />
-
-        <TextView
-            android:id="@+id/textCountdown"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="5:00"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#92400E"
-            android:layout_marginStart="12dp" />
-
-    </LinearLayout>
-
     <!-- Bottom control bar -->
     <LinearLayout
         android:id="@+id/bottomBar"
