@@ -92,6 +92,7 @@ async function getClaims (req, res, next) {
 
     const claimsRes = await db.query(
       `SELECT c.claim_id, c.order_id, c.status, c.created_at,
+              c.seller_decision, c.seller_viewed_at,
               (SELECT COUNT(*) FROM evidence_items e WHERE e.claim_id = c.id) AS evidence_count
        FROM claims c
        WHERE c.seller_id = (SELECT id FROM sellers WHERE seller_id = $1)${whereExtra}
@@ -107,6 +108,8 @@ async function getClaims (req, res, next) {
         status: c.status,
         evidenceCount: Number(c.evidence_count || 0),
         submittedAt: c.created_at,
+        sellerDecision: c.seller_decision || null,
+        sellerViewedAt: c.seller_viewed_at || null,
         verificationUrl: `${PUBLIC_BASE_URL}/v1/verify/${c.claim_id}`,
         thumbnailUrl: null
       })),
