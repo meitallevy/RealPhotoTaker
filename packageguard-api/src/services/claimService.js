@@ -15,6 +15,38 @@ async function initiateClaim (payload) {
     throw err;
   }
   const seller = sellerRes.rows[0];
+  const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://localhost:4000';
+
+  // ── Check for any still-open or completed claim for this order ────────────
+  // Open = PENDING, UPLOADING, PROCESSING, COMPLETED (not FAILED / EXPIRED)
+  const openClaimRes = await db.query(
+    `SELECT claim_id, status, seller_decision FROM claims
+     WHERE order_id = $1
+       AND seller_id = $2
+       AND status IN ('PENDING', 'UPLOADING', 'PROCESSING', 'COMPLETED')
+     ORDER BY created_at DESC LIMIT 1`,
+    [orderId, seller.id]
+  );
+  if (openClaimRes.rowCount > 0) {
+    const open = openClaimRes.rows[0];
+    // COMPLETED + no seller decision yet = evidence processed, awaiting seller action.
+    // COMPLETED + decision present = seller has approved or rejected.
+    const displayStatus = open.status === 'COMPLETED' && !open.seller_decision
+      ? 'AWAITING_DECISION'
+      : open.status;
+    return {
+      alreadyOpen: true,
+      claimId:   open.claim_id,
+      status:    displayStatus,
+      verificationUrl: open.status === 'COMPLETED'
+        ? `${PUBLIC_BASE_URL}/v1/verify/${open.claim_id}`
+        : null,
+      // Unused in this path but keep shape consistent
+      nonce: null, nonceExpiresAt: null, serverTime: new Date().toISOString(),
+      moreInfoRequested: false, sellerNote: null,
+      captureConfig: {}, uploadEndpoint: null, uploadConfig: null
+    };
+  }
 
   // ── Plan limit check (skip for MORE_INFO_REQUESTED re-opens) ─────────────
   const planCheck = await checkPlanLimit(sellerId);

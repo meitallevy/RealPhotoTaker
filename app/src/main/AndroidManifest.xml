@@ -80,6 +80,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".presentation.claim.BuyerClaimStatusActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".presentation.claim.ReviewSubmitActivity"
             android:exported="false" />
 

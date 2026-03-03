@@ -74,6 +74,16 @@ public class ClaimEntryActivity extends AppCompatActivity {
         String sellerId = editSellerId.getText().toString().trim();
         String orderId = editOrderId.getText().toString().trim();
 
+        if (response.alreadyOpen) {
+            // Claim already exists — send buyer to a read-only status page
+            Intent intent = new Intent(this, BuyerClaimStatusActivity.class);
+            intent.putExtra(BuyerClaimStatusActivity.EXTRA_CLAIM_ID, response.claimId);
+            intent.putExtra(BuyerClaimStatusActivity.EXTRA_STATUS, response.status);
+            intent.putExtra(BuyerClaimStatusActivity.EXTRA_VERIFICATION_URL, response.verificationUrl);
+            startActivity(intent);
+            return;
+        }
+
         if (response.moreInfoRequested) {
             // Redirect buyers to a dedicated screen explaining the seller's request
             Intent intent = new Intent(this, BuyerMoreInfoActivity.class);
