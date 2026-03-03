@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      - PORT=4000
+      - DATABASE_URL=postgres://packageguard:packageguard@db:5432/packageguard
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=changeme_jwt
+      - JWT_REFRESH_SECRET=changeme_refresh
+      - PUBLIC_BASE_URL=http://192.168.0.135:4000
+    command: sh -c "npm run migrate && npm run seed && node src/app.js"
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=packageguard
+      - POSTGRES_PASSWORD=packageguard
+      - POSTGRES_DB=packageguard
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U packageguard -d packageguard"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+

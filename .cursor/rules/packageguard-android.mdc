@@ -1,0 +1,19 @@
+---
+alwaysApply: true
+---
+
+## PackageGuard Android App Layout
+
+- **App entry**: [`app/src/main/java/io/packageguard/app/PackageGuardApp.kt`](mdc:app/src/main/java/io/packageguard/app/PackageGuardApp.kt)
+- **DI**:
+  - Hilt network module: [`app/src/main/java/io/packageguard/app/di/NetworkModule.kt`](mdc:app/src/main/java/io/packageguard/app/di/NetworkModule.kt)
+- **Networking**:
+  - Retrofit interface: [`app/src/main/java/io/packageguard/app/data/remote/api/PackageGuardApi.kt`](mdc:app/src/main/java/io/packageguard/app/data/remote/api/PackageGuardApi.kt)
+  - DTOs: [`app/src/main/java/io/packageguard/app/data/remote/dto`](mdc:app/src/main/java/io/packageguard/app/data/remote/dto)
+- **Presentation (MVVM)**:
+  - Splash: [`app/src/main/java/io/packageguard/app/presentation/splash`](mdc:app/src/main/java/io/packageguard/app/presentation/splash)
+  - Auth: [`app/src/main/java/io/packageguard/app/presentation/auth`](mdc:app/src/main/java/io/packageguard/app/presentation/auth)
+  - Seller dashboard: [`app/src/main/java/io/packageguard/app/presentation/seller`](mdc:app/src/main/java/io/packageguard/app/presentation/seller)
+
+The Android client is intentionally **thin**: it should only orchestrate UI, camera, and uploads, while all business logic and validation stay on the backend.
+

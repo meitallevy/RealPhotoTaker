@@ -1,0 +1,287 @@
+const fs = require('fs');
+const db = require('../config/database');
+
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://localhost:4000';
+
+async function getDashboard (req, res, next) {
+  try {
+    const sellerId = req.user.sellerId;
+
+    const sellerRes = await db.query(
+      `SELECT s.seller_id, s.business_name, s.country, s.created_at,
+              u.email, u.email_verified
+       FROM sellers s
+       JOIN users u ON u.id = s.user_id
+       WHERE s.seller_id = $1`,
+      [sellerId]
+    );
+    if (sellerRes.rowCount === 0) {
+      const err = new Error('Seller not found');
+      err.status = 404;
+      throw err;
+    }
+    const seller = sellerRes.rows[0];
+
+    const statsRes = await db.query(
+      `SELECT
+         COUNT(*) AS total_claims,
+         COUNT(*) FILTER (WHERE c.created_at >= NOW() - INTERVAL '30 days') AS claims_this_month,
+         COALESCE(AVG(c.risk_score), 0) AS average_risk_score,
+         COUNT(*) FILTER (WHERE c.risk_score >= 70) AS high_risk_claims
+       FROM claims c
+       WHERE c.seller_id = (SELECT id FROM sellers WHERE seller_id = $1)`,
+      [sellerId]
+    );
+    const statsRow = statsRes.rows[0];
+
+    res.json({
+      seller: {
+        sellerId: seller.seller_id,
+        businessName: seller.business_name,
+        email: seller.email,
+        verified: seller.email_verified,
+        createdAt: seller.created_at
+      },
+      stats: {
+        totalClaims: Number(statsRow.total_claims || 0),
+        claimsThisMonth: Number(statsRow.claims_this_month || 0),
+        averageRiskScore: Math.round(Number(statsRow.average_risk_score || 0)),
+        highRiskClaims: Number(statsRow.high_risk_claims || 0)
+      },
+      qrCode: {
+        dataUrl: null,
+        deepLink: `packageguard://claim?seller=${sellerId}`
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getClaims (req, res, next) {
+  try {
+    const sellerId = req.user.sellerId;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, parseInt(req.query.limit) || 20);
+    const offset = (page - 1) * limit;
+
+    const params = [sellerId];
+    let whereExtra = '';
+
+    if (req.query.status) {
+      params.push(req.query.status);
+      whereExtra += ` AND c.status = $${params.length}`;
+    }
+    if (req.query.from) {
+      params.push(req.query.from);
+      whereExtra += ` AND c.created_at >= $${params.length}`;
+    }
+    if (req.query.to) {
+      params.push(req.query.to);
+      whereExtra += ` AND c.created_at <= $${params.length}`;
+    }
+
+    const countRes = await db.query(
+      `SELECT COUNT(*) FROM claims c
+       WHERE c.seller_id = (SELECT id FROM sellers WHERE seller_id = $1)${whereExtra}`,
+      params
+    );
+    const total = Number(countRes.rows[0].count || 0);
+
+    params.push(limit, offset);
+
+    const claimsRes = await db.query(
+      `SELECT c.claim_id, c.order_id, c.status, c.risk_score, c.created_at,
+              (SELECT COUNT(*) FROM evidence_items e WHERE e.claim_id = c.id) AS evidence_count
+       FROM claims c
+       WHERE c.seller_id = (SELECT id FROM sellers WHERE seller_id = $1)${whereExtra}
+       ORDER BY c.created_at DESC
+       LIMIT $${params.length - 1} OFFSET $${params.length}`,
+      params
+    );
+
+    res.json({
+      claims: claimsRes.rows.map(c => ({
+        claimId: c.claim_id,
+        orderId: c.order_id,
+        status: c.status,
+        evidenceCount: Number(c.evidence_count || 0),
+        riskScore: c.risk_score,
+        submittedAt: c.created_at,
+        verificationUrl: `${PUBLIC_BASE_URL}/v1/verify/${c.claim_id}`,
+        thumbnailUrl: null
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        hasMore: page * limit < total
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getClaimDetail (req, res, next) {
+  try {
+    const sellerId = req.user.sellerId;
+    const { claimId } = req.params;
+
+    const claimRes = await db.query(
+      `SELECT c.claim_id, c.order_id, c.status, c.created_at, c.buyer_notes,
+              c.risk_score, c.risk_factors, c.manifest_hash, c.signature, c.signed_at, c.pdf_url
+       FROM claims c
+       WHERE c.claim_id = $1
+         AND c.seller_id = (SELECT id FROM sellers WHERE seller_id = $2)`,
+      [claimId, sellerId]
+    );
+    if (claimRes.rowCount === 0) {
+      const err = new Error('Claim not found');
+      err.status = 404;
+      throw err;
+    }
+    const claim = claimRes.rows[0];
+
+    const evidenceRes = await db.query(
+      `SELECT evidence_id, step_id, file_hash, captured_at, resolution, mime_type, file_path
+       FROM evidence_items
+       WHERE claim_id = (SELECT id FROM claims WHERE claim_id = $1)
+       ORDER BY sequence_number ASC`,
+      [claimId]
+    );
+
+    const riskFactors = claim.risk_factors || ['Evidence captured within nonce window'];
+
+    res.json({
+      claim: {
+        claimId: claim.claim_id,
+        orderId: claim.order_id,
+        status: claim.status,
+        submittedAt: claim.created_at,
+        buyerNotes: claim.buyer_notes,
+        riskScore: claim.risk_score,
+        riskFactors
+      },
+      evidence: evidenceRes.rows.map(e => ({
+        evidenceId: e.evidence_id,
+        stepId: e.step_id,
+        hash: e.file_hash,
+        capturedAt: e.captured_at,
+        imageUrl: e.file_path
+          ? `${PUBLIC_BASE_URL}/v1/seller/claims/${claimId}/evidence/${e.evidence_id}/image`
+          : null,
+        metadata: {
+          resolution: e.resolution,
+          mimeType: e.mime_type
+        }
+      })),
+      verification: {
+        manifestHash: claim.manifest_hash,
+        signature: claim.signature,
+        signedAt: claim.signed_at,
+        signedBy: 'PackageGuard Evidence Service',
+        publicKeyUrl: 'https://packageguard.io/.well-known/signing-key.pem'
+      },
+      pdfReportUrl: claim.pdf_url
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function updateSettings (req, res, next) {
+  try {
+    const sellerId = req.user.sellerId;
+    const { email, webhookUrl, notificationPreferences } = req.body;
+
+    let emailUpdateRequired = false;
+
+    if (email) {
+      await db.query(
+        `UPDATE users SET email = $1, email_verified = false, updated_at = NOW()
+         WHERE id = (SELECT user_id FROM sellers WHERE seller_id = $2)`,
+        [email, sellerId]
+      );
+      emailUpdateRequired = true;
+    }
+
+    const updates = [];
+    const params = [sellerId];
+
+    if (webhookUrl !== undefined) {
+      params.push(webhookUrl);
+      updates.push(`webhook_url = $${params.length}`);
+    }
+    if (notificationPreferences?.emailOnNewClaim !== undefined) {
+      params.push(notificationPreferences.emailOnNewClaim);
+      updates.push(`notification_email = $${params.length}`);
+    }
+    if (notificationPreferences?.webhookEnabled !== undefined) {
+      params.push(notificationPreferences.webhookEnabled);
+      updates.push(`notification_webhook = $${params.length}`);
+    }
+
+    if (updates.length > 0) {
+      await db.query(
+        `UPDATE sellers SET ${updates.join(', ')}, updated_at = NOW() WHERE seller_id = $1`,
+        params
+      );
+    }
+
+    res.json({ updated: true, verificationRequired: emailUpdateRequired });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getEvidenceImage (req, res, next) {
+  try {
+    const sellerId = req.user.sellerId;
+    const { claimId, evidenceId } = req.params;
+
+    // Verify claim belongs to this seller
+    const claimCheck = await db.query(
+      `SELECT c.id FROM claims c
+       WHERE c.claim_id = $1
+         AND c.seller_id = (SELECT id FROM sellers WHERE seller_id = $2)`,
+      [claimId, sellerId]
+    );
+    if (claimCheck.rowCount === 0) {
+      const err = new Error('Claim not found');
+      err.status = 404;
+      throw err;
+    }
+
+    const evidenceRes = await db.query(
+      `SELECT file_path, mime_type FROM evidence_items WHERE evidence_id = $1`,
+      [evidenceId]
+    );
+    if (evidenceRes.rowCount === 0) {
+      const err = new Error('Evidence not found');
+      err.status = 404;
+      throw err;
+    }
+
+    const { file_path, mime_type } = evidenceRes.rows[0];
+    if (!fs.existsSync(file_path)) {
+      const err = new Error('File not found on disk');
+      err.status = 404;
+      throw err;
+    }
+
+    res.setHeader('Content-Type', mime_type || 'image/jpeg');
+    res.setHeader('Cache-Control', 'private, max-age=3600');
+    fs.createReadStream(file_path).pipe(res);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = {
+  getDashboard,
+  getClaims,
+  getClaimDetail,
+  getEvidenceImage,
+  updateSettings
+};

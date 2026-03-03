@@ -1,0 +1,23 @@
+---
+alwaysApply: true
+---
+
+## PackageGuard Backend Layout
+
+- **API root**: [`packageguard-api/src/app.js`](mdc:packageguard-api/src/app.js)
+- **Config**:
+  - Database: [`packageguard-api/src/config/database.js`](mdc:packageguard-api/src/config/database.js)
+  - Redis: [`packageguard-api/src/config/redis.js`](mdc:packageguard-api/src/config/redis.js)
+  - Storage paths: [`packageguard-api/src/config/storage.js`](mdc:packageguard-api/src/config/storage.js)
+- **HTTP layers**:
+  - Routes: [`packageguard-api/src/routes`](mdc:packageguard-api/src/routes)
+  - Controllers: [`packageguard-api/src/controllers`](mdc:packageguard-api/src/controllers)
+  - Services: [`packageguard-api/src/services`](mdc:packageguard-api/src/services)
+  - Middleware: [`packageguard-api/src/middleware`](mdc:packageguard-api/src/middleware)
+- **Workers**:
+  - Evidence processing & signing: [`packageguard-api/src/workers/processClaimWorker.js`](mdc:packageguard-api/src/workers/processClaimWorker.js)
+- **Database schema & migrations**:
+  - SQL: [`packageguard-api/src/migrations`](mdc:packageguard-api/src/migrations)
+
+The backend follows a **thick server** approach: all business logic (claims, signing, config, validation) should live under `services/` and `workers/`, with controllers staying thin.
+

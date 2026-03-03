@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Review &amp; Submit"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#1a1a1a"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Review your captured photos before submission."
+        android:textSize="14sp"
+        android:textColor="#666666"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Photo strip -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginBottom="16dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/photoStrip"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical" />
+    </HorizontalScrollView>
+
+    <!-- Upload progress indicator -->
+    <TextView
+        android:id="@+id/textUploadProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="13sp"
+        android:textColor="#555555"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Notes input -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Notes (optional) — describe any damage or issues"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_marginBottom="16dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editBuyerNotes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:minLines="3"
+            android:gravity="top" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/buttonSubmit"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Submit Evidence"
+        android:layout_marginBottom="8dp" />
+
+    <ProgressBar
+        android:id="@+id/progressBarSubmit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/textSubmitStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

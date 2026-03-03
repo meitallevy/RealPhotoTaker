@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow plain HTTP to any host in debug builds only -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </debug-overrides>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
+

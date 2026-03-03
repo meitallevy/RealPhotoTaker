@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PackageGuard"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:textColor="#1a1a1a"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tamper-evident package evidence"
+        android:textSize="14sp"
+        android:textColor="#666666"
+        android:layout_marginBottom="40dp" />
+
+    <Button
+        android:id="@+id/buttonClient"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="I Received a Package (File a Claim)"
+        android:textSize="15sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEEEEE"
+        android:layout_marginVertical="24dp" />
+
+    <Button
+        android:id="@+id/buttonSeller"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Seller Login"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+    <Button
+        android:id="@+id/buttonRegisterSeller"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Register as Seller"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

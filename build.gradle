@@ -1,0 +1,17 @@
+// Top-level build file
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:8.5.0"
+        classpath "com.google.dagger:hilt-android-gradle-plugin:2.51"
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
