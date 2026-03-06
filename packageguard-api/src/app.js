@@ -41,27 +41,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// Configure Helmet with CSP that allows nonces for inline scripts
-// Use a function to dynamically generate CSP with nonce
-app.use(helmet({
-  contentSecurityPolicy: {
-    useDefaults: false,
-    directives: (req, res) => {
-      const nonce = res.locals.nonce;
-      return {
+// Configure Helmet with CSP that allows inline scripts for verify page
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: [
-          "'self'",
-          nonce ? `'nonce-${nonce}'` : null
-        ].filter(Boolean),
+        scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for verify page
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
         imgSrc: ["'self'", "data:", "https:"],
         connectSrc: ["'self'"]
-      };
+      }
     }
-  }
-}));
+  })
+);
 
 app.use(
   cors({
