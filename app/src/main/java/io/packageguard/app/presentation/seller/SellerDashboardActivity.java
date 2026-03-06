@@ -8,6 +8,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
@@ -18,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import io.packageguard.app.BuildConfig;
 import io.packageguard.app.R;
 import io.packageguard.app.presentation.auth.LoginActivity;
 
@@ -40,6 +42,7 @@ public class SellerDashboardActivity extends AppCompatActivity {
         Button buttonCopySellerId  = findViewById(R.id.buttonCopySellerId);
         Button buttonRefresh       = findViewById(R.id.buttonRefresh);
         Button buttonViewClaims    = findViewById(R.id.buttonViewClaims);
+        Button buttonWebDashboard  = findViewById(R.id.buttonWebDashboard);
         Button buttonLogout        = findViewById(R.id.buttonLogout);
 
         viewModel.getSellerName().observe(this, name ->
@@ -72,6 +75,23 @@ public class SellerDashboardActivity extends AppCompatActivity {
 
         buttonViewClaims.setOnClickListener(v ->
                 startActivity(new Intent(this, SellerClaimsActivity.class)));
+
+        buttonWebDashboard.setOnClickListener(v -> {
+            String accessToken = viewModel.getSessionManager().getAccessToken();
+            if (accessToken == null || accessToken.isEmpty()) {
+                Toast.makeText(this, "Not authenticated", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // Construct web dashboard URL with token
+            String baseUrl = BuildConfig.API_BASE_URL;
+            // Remove trailing slash if present
+            if (baseUrl.endsWith("/")) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+            }
+            String dashboardUrl = baseUrl + "/v1/seller/web/dashboard?token=" + Uri.encode(accessToken);
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(dashboardUrl));
+            startActivity(browserIntent);
+        });
 
         buttonLogout.setOnClickListener(v -> {
             viewModel.getSessionManager().logout();

@@ -106,15 +106,62 @@
                 android:text="@string/more_info_hint"
                 android:textSize="13sp"
                 android:textColor="@color/text_secondary"
-                android:layout_marginBottom="20dp" />
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Add Notes (Optional)"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="6dp" />
+
+            <EditText
+                android:id="@+id/editBuyerNotes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="100dp"
+                android:hint="Add any additional information or context..."
+                android:inputType="textMultiLine"
+                android:gravity="top|start"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"
+                android:background="@android:drawable/edit_text" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Photos Added"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:id="@+id/photoThumbnails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp" />
 
             <Button
                 android:id="@+id/buttonAddMore"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:text="@string/more_info_add_more_button"
+                android:text="Add Photos (Camera Only)"
                 android:backgroundTint="@color/brand_primary"
                 android:textColor="@color/white"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/buttonSubmit"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Submit Additional Information"
+                android:backgroundTint="@color/brand_primary"
+                android:textColor="@color/white"
+                android:enabled="false"
                 android:layout_marginBottom="12dp" />
 
             <Button

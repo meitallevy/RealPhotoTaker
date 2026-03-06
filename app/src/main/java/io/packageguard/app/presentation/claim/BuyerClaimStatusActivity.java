@@ -32,6 +32,7 @@ public class BuyerClaimStatusActivity extends AppCompatActivity {
         String claimId          = getIntent().getStringExtra(EXTRA_CLAIM_ID);
         String status           = getIntent().getStringExtra(EXTRA_STATUS);
         String verificationUrl  = getIntent().getStringExtra(EXTRA_VERIFICATION_URL);
+        String sellerDecision  = getIntent().getStringExtra("sellerDecision"); // May come from status check
 
         TextView textStatusChip  = findViewById(R.id.textStatusChip);
         TextView textStatusMsg   = findViewById(R.id.textStatusMessage);
@@ -43,16 +44,33 @@ public class BuyerClaimStatusActivity extends AppCompatActivity {
         // Populate claim ID
         textClaimId.setText(claimId != null ? claimId : "—");
 
-        // Apply status chip
-        applyStatusChip(textStatusChip, status);
+        // Apply status chip (shows decision if available, otherwise status)
+        applyStatusChip(textStatusChip, status, sellerDecision);
 
-        // Status-dependent message
-        textStatusMsg.setText(statusMessage(status));
+        // Status-dependent message (update if decision exists)
+        if (sellerDecision != null && !sellerDecision.isEmpty()) {
+            switch (sellerDecision.toUpperCase()) {
+                case "APPROVED":
+                    textStatusMsg.setText("Your claim has been approved by the seller.");
+                    break;
+                case "REJECTED":
+                    textStatusMsg.setText("Your claim has been rejected by the seller.");
+                    break;
+                case "MORE_INFO_REQUESTED":
+                    textStatusMsg.setText("The seller has requested additional information. Please add more photos and notes.");
+                    break;
+                default:
+                    textStatusMsg.setText(statusMessage(status));
+            }
+        } else {
+            textStatusMsg.setText(statusMessage(status));
+        }
 
-        // Show "View Report" when evidence is processed (AWAITING_DECISION or COMPLETED) and URL is available
-        if (("COMPLETED".equalsIgnoreCase(status) || "AWAITING_DECISION".equalsIgnoreCase(status))
-                && verificationUrl != null && !verificationUrl.isEmpty()) {
+        // Always show "View Report" button if we have a verification URL
+        // The web page will show the current state including any decisions
+        if (verificationUrl != null && !verificationUrl.isEmpty()) {
             buttonViewReport.setVisibility(View.VISIBLE);
+            buttonViewReport.setText("View Full Report");
             buttonViewReport.setOnClickListener(v -> {
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(verificationUrl));
                 startActivity(browserIntent);
@@ -74,24 +92,45 @@ public class BuyerClaimStatusActivity extends AppCompatActivity {
         }
     }
 
-    private static void applyStatusChip(TextView tv, String status) {
+    private static void applyStatusChip(TextView tv, String status, String sellerDecision) {
         String label;
         int bg, fg;
-        switch (status == null ? "" : status.toUpperCase()) {
-            case "COMPLETED":
-                label = "Decision Made";
-                bg = Color.parseColor("#E8F5E9"); fg = Color.parseColor("#1B5E20"); break;
-            case "AWAITING_DECISION":
-                label = "Waiting for reviewer";
-                bg = Color.parseColor("#FFF3E0"); fg = Color.parseColor("#E65100"); break;
-            case "PROCESSING":
-            case "UPLOADING":
-                label = "Processing";
-                bg = Color.parseColor("#E3F2FD"); fg = Color.parseColor("#1565C0"); break;
-            default:
-                label = "Waiting for review";
-                bg = Color.parseColor("#FFF3E0"); fg = Color.parseColor("#E65100"); break;
+        
+        // If seller has made a decision, show that instead of status
+        if (sellerDecision != null && !sellerDecision.isEmpty()) {
+            switch (sellerDecision.toUpperCase()) {
+                case "APPROVED":
+                    label = "✓ Approved";
+                    bg = Color.parseColor("#E8F5E9"); fg = Color.parseColor("#1B5E20"); break;
+                case "REJECTED":
+                    label = "✗ Rejected";
+                    bg = Color.parseColor("#FFEBEE"); fg = Color.parseColor("#B71C1C"); break;
+                case "MORE_INFO_REQUESTED":
+                    label = "ℹ More Info Needed";
+                    bg = Color.parseColor("#FFF3E0"); fg = Color.parseColor("#E65100"); break;
+                default:
+                    label = "Decision Made";
+                    bg = Color.parseColor("#E8F5E9"); fg = Color.parseColor("#1B5E20"); break;
+            }
+        } else {
+            // No decision yet - show status
+            switch (status == null ? "" : status.toUpperCase()) {
+                case "COMPLETED":
+                    label = "Ready for Review";
+                    bg = Color.parseColor("#E3F2FD"); fg = Color.parseColor("#1565C0"); break;
+                case "AWAITING_DECISION":
+                    label = "Waiting for reviewer";
+                    bg = Color.parseColor("#FFF3E0"); fg = Color.parseColor("#E65100"); break;
+                case "PROCESSING":
+                case "UPLOADING":
+                    label = "Processing";
+                    bg = Color.parseColor("#E3F2FD"); fg = Color.parseColor("#1565C0"); break;
+                default:
+                    label = "Waiting for review";
+                    bg = Color.parseColor("#FFF3E0"); fg = Color.parseColor("#E65100"); break;
+            }
         }
+        
         tv.setText(label);
         GradientDrawable drawable = new GradientDrawable();
         drawable.setShape(GradientDrawable.RECTANGLE);

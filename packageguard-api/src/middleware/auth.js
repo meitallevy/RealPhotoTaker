@@ -16,10 +16,25 @@
 const jwt = require('jsonwebtoken');
 
 function authenticate (req, res, next) {
+  // Try Authorization header first (Bearer token), then query parameter (for web access)
   const header = req.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  let token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  
+  // Fallback to query parameter for web UI access
+  if (!token && req.query.token) {
+    token = req.query.token;
+  }
 
   if (!token) {
+    // For web routes, return HTML error page; for API, return JSON
+    if (req.path && req.path.includes('/web/')) {
+      return res.status(401).send(`
+        <!DOCTYPE html>
+        <html><head><title>Unauthorized</title></head>
+        <body><h1>401 Unauthorized</h1><p>Missing or invalid authentication token.</p>
+        <p><a href="/v1/auth/login">Login</a></p></body></html>
+      `);
+    }
     return res.status(401).json({ error: { message: 'Missing token' } });
   }
 
@@ -28,6 +43,15 @@ function authenticate (req, res, next) {
     req.user = decoded;
     return next();
   } catch (err) {
+    // For web routes, return HTML error page; for API, return JSON
+    if (req.path && req.path.includes('/web/')) {
+      return res.status(401).send(`
+        <!DOCTYPE html>
+        <html><head><title>Unauthorized</title></head>
+        <body><h1>401 Unauthorized</h1><p>Invalid or expired authentication token.</p>
+        <p><a href="/v1/auth/login">Login</a></p></body></html>
+      `);
+    }
     return res.status(401).json({ error: { message: 'Invalid token' } });
   }
 }

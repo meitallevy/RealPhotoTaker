@@ -17,13 +17,20 @@ const router = express.Router();
 
 const { authenticate } = require('../middleware/auth');
 const sellerController = require('../controllers/sellerController');
+const sellerWebController = require('../controllers/sellerWebController');
 
+// API routes (JSON responses)
 router.get('/dashboard', authenticate, sellerController.getDashboard);
 router.get('/claims', authenticate, sellerController.getClaims);
 router.get('/claims/:claimId', authenticate, sellerController.getClaimDetail);
 router.get('/claims/:claimId/evidence/:evidenceId/image', authenticate, sellerController.getEvidenceImage);
 router.patch('/claims/:claimId/review', authenticate, sellerController.reviewClaim);
 router.patch('/settings', authenticate, sellerController.updateSettings);
+
+// Web UI routes (HTML responses)
+router.get('/web/dashboard', authenticate, sellerWebController.dashboard);
+router.get('/web/claims', authenticate, sellerWebController.claimsList);
+router.get('/web/claims/:claimId', authenticate, sellerWebController.claimDetail);
 
 module.exports = router;
 

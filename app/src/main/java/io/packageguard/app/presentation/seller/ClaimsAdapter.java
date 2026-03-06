@@ -113,12 +113,16 @@ public class ClaimsAdapter extends RecyclerView.Adapter<ClaimsAdapter.ViewHolder
         int bg, fg;
         switch (status == null ? "" : status.toUpperCase()) {
             case "COMPLETED":
-                label = "Resolved";
-                bg = Color.parseColor("#E8F5E9"); fg = Color.parseColor("#1B5E20"); break;
+                // COMPLETED means processing done, but may still be open (no decision yet)
+                label = "Ready for Review";
+                bg = Color.parseColor("#E3F2FD"); fg = Color.parseColor("#1565C0"); break;
             case "PROCESSING":
             case "UPLOADING":
                 label = "Processing";
                 bg = Color.parseColor("#E3F2FD"); fg = Color.parseColor("#1565C0"); break;
+            case "AWAITING_DECISION":
+                label = "Awaiting Decision";
+                bg = Color.parseColor("#FFF3E0"); fg = Color.parseColor("#E65100"); break;
             case "FAILED":
             case "EXPIRED":
                 label = "Failed";

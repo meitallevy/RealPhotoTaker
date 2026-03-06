@@ -284,64 +284,64 @@ async function buildHtml (claim, evidenceRows, verificationUrl) {
 </div>
 
 <script>
-  function shareReport() {
-    var url = '${verificationUrl}';
-    if (navigator.share) {
-      navigator.share({ 
-        title: 'PackageGuard Verification Report',
-        text: 'View this PackageGuard evidence verification report',
-        url: url 
-      }).catch(function(err) {
-        // Fallback to clipboard if share fails
-        copyToClipboard(url);
-      });
-    } else {
-      copyToClipboard(url);
-    }
-  }
+  (function() {
+    var verificationUrl = '${verificationUrl.replace(/'/g, "\\'")}';
+    
+    window.shareReport = function() {
+      if (navigator.share) {
+        navigator.share({ 
+          title: 'PackageGuard Verification Report',
+          text: 'View this PackageGuard evidence verification report',
+          url: verificationUrl 
+        }).catch(function(err) {
+          console.log('Share failed:', err);
+          copyToClipboard(verificationUrl);
+        });
+      } else {
+        copyToClipboard(verificationUrl);
+      }
+    };
 
-  function copyToClipboard(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function() {
-        alert('Verification link copied to clipboard!');
-      }).catch(function() {
-        // Fallback for older browsers
-        var textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-          document.execCommand('copy');
+    function copyToClipboard(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
           alert('Verification link copied to clipboard!');
-        } catch (err) {
-          prompt('Copy this link:', text);
-        }
-        document.body.removeChild(textarea);
-      });
-    } else {
-      // Fallback for older browsers
+        }).catch(function(err) {
+          console.log('Clipboard API failed:', err);
+          fallbackCopyToClipboard(text);
+        });
+      } else {
+        fallbackCopyToClipboard(text);
+      }
+    }
+
+    function fallbackCopyToClipboard(text) {
       var textarea = document.createElement('textarea');
       textarea.value = text;
       textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
+      textarea.style.left = '-999999px';
+      textarea.style.top = '-999999px';
       document.body.appendChild(textarea);
+      textarea.focus();
       textarea.select();
       try {
-        document.execCommand('copy');
-        alert('Verification link copied to clipboard!');
+        var successful = document.execCommand('copy');
+        if (successful) {
+          alert('Verification link copied to clipboard!');
+        } else {
+          prompt('Copy this link:', text);
+        }
       } catch (err) {
+        console.error('Fallback copy failed:', err);
         prompt('Copy this link:', text);
       }
       document.body.removeChild(textarea);
     }
-  }
 
-  function printReport() {
-    // Trigger browser print dialog (Ctrl+P / Cmd+P)
-    window.print();
-  }
+    window.printReport = function() {
+      window.print();
+    };
+  })();
 </script>
 </body>
 </html>`;

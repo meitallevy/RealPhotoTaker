@@ -179,18 +179,21 @@ async function getStatus (claimId) {
   }
   const claim = res.rows[0];
 
+  const verificationUrl = `${process.env.PUBLIC_BASE_URL || 'http://localhost:4000'}/v1/verify/${claim.claim_id}`;
+  
   return {
     claimId: claim.claim_id,
     status: claim.status,
     sellerDecision: claim.seller_decision,
     sellerNote: claim.seller_note,
+    verificationUrl: verificationUrl, // Always include verification URL so buyer can view report
     result: claim.status === 'COMPLETED'
       ? {
           valid: true,
           evidenceCount: null,
           manifestHash: claim.manifest_hash,
           signedAt: claim.signed_at,
-          verificationUrl: `${process.env.PUBLIC_BASE_URL || 'http://localhost:4000'}/v1/verify/${claim.claim_id}`,
+          verificationUrl: verificationUrl,
           pdfReportUrl: claim.pdf_url,
           sellerNotified: true,
           attestationVerdict: null
