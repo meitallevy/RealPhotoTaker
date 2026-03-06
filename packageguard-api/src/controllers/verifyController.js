@@ -68,7 +68,7 @@ function aiVerdictChip (verdict) {
   </div>`;
 }
 
-async function buildHtml (claim, evidenceRows, verificationUrl) {
+async function buildHtml (claim, evidenceRows, verificationUrl, nonce) {
   const sigOk   = !!(claim.manifest_hash && claim.signature);
   const evCount = Number(claim.evidence_count || 0);
   // Order reference is not sensitive data - show it in full
@@ -283,7 +283,7 @@ async function buildHtml (claim, evidenceRows, verificationUrl) {
 
 </div>
 
-<script>
+<script nonce="${nonce}">
   (function() {
     var verificationUrl = '${verificationUrl.replace(/'/g, "\\'")}';
     
@@ -404,7 +404,8 @@ async function publicVerify (req, res, next) {
     // Browser request → HTML report
     if (req.accepts('html')) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return res.send(await buildHtml(claim, evidenceRows, verificationUrl));
+      const nonce = res.locals.nonce || '';
+      return res.send(await buildHtml(claim, evidenceRows, verificationUrl, nonce));
     }
 
     // API / JSON request

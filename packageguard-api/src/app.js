@@ -33,7 +33,36 @@ const verifyRoutes = require('./routes/verifyRoutes');
 
 const app = express();
 
-app.use(helmet());
+// Middleware to generate nonce for each request (used by verify page)
+// Must run before Helmet so nonce is available for CSP
+const crypto = require('crypto');
+app.use((req, res, next) => {
+  res.locals.nonce = crypto.randomBytes(16).toString('base64');
+  next();
+});
+
+// Configure Helmet with CSP that allows nonces for inline scripts
+// Use a function to dynamically generate CSP with nonce
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: false,
+    directives: (req, res) => {
+      const nonce = res.locals.nonce;
+      return {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          nonce ? `'nonce-${nonce}'` : null
+        ].filter(Boolean),
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'"]
+      };
+    }
+  }
+}));
+
 app.use(
   cors({
     origin: '*'
