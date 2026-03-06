@@ -51,10 +51,11 @@ public class ConfirmationActivity extends AppCompatActivity {
         textStatus.setText("Status: " + (status != null ? status : "PROCESSING"));
         textVerifyUrl.setText(verifyUrl);
 
+        String finalVerifyUrl = verifyUrl;
         buttonCopyUrl.setOnClickListener(v -> {
             ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             if (cm != null) {
-                cm.setPrimaryClip(ClipData.newPlainText("Verification URL", verifyUrl));
+                cm.setPrimaryClip(ClipData.newPlainText("Verification URL", finalVerifyUrl));
                 Toast.makeText(this, "URL copied", Toast.LENGTH_SHORT).show();
             }
         });
