@@ -40,17 +40,19 @@ DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@db.xxxxx.supabase.co:5432/post
 
 ## Android App Configuration
 
-In `app/build.gradle`:
+**For production (release builds)**, update `app/build.gradle`:
 
 ```groovy
-defaultConfig {
-    // ...
-    // Set this to your Render URL (no trailing slash)
-    buildConfigField "String", "API_BASE_URL", '"https://realphototaker-api.onrender.com"'
+release {
+    buildConfigField "String", "API_BASE_URL", '"https://your-actual-service.onrender.com"'
 }
 ```
 
-The Retrofit client uses `BuildConfig.API_BASE_URL` via `NetworkModule`, so updating this one line points the app at your deployed API.
+**For local development (debug builds)**, the app uses `http://10.0.2.2:4000` by default (Android emulator → host machine).
+
+The Retrofit client uses `BuildConfig.API_BASE_URL` via `NetworkModule`, so updating the release build type points production APKs at your deployed Render API.
+
+See `LOCAL_DEV.md` for detailed local development setup instructions.
 
 ## CI / CD
 

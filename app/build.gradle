@@ -28,7 +28,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             // ── Production API — update this to your Render service URL ──────────
-            buildConfigField "String", "API_BASE_URL", '"https://YOUR-SERVICE-NAME.onrender.com"'
+            buildConfigField "String", "API_BASE_URL", '"https://packageguard.onrender.com"'
         }
         debug {
             applicationIdSuffix ".debug"

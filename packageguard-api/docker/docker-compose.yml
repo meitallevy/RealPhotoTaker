@@ -7,11 +7,31 @@ services:
       dockerfile: docker/Dockerfile
     environment:
       - PORT=4000
+      # ── Database: Use Supabase (production) or local Postgres (dev) ────────────────
+      # Option 1: Local dev (default) — uses the 'db' service below
       - DATABASE_URL=postgres://packageguard:packageguard@db:5432/packageguard
+      # Option 2: Supabase (production-like) — uncomment and set your Supabase URI:
+      # - DATABASE_URL=${DATABASE_URL}
+      # Then create a .env file in packageguard-api/ with:
+      #   DATABASE_URL=postgresql://postgres:PASSWORD@db.xxxxx.supabase.co:5432/postgres
+      #   SUPABASE_URL=https://xxxxx.supabase.co
+      #   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+      #   SUPABASE_STORAGE_BUCKET=evidence
+      #   NODE_ENV=production
+      #   JWT_SECRET=...
+      #   JWT_REFRESH_SECRET=...
+      #   PUBLIC_BASE_URL=http://localhost:4000
+      #   SIGNING_PRIVATE_KEY_PEM=...
+      # Then run: docker compose --env-file ../.env up
       - REDIS_URL=redis://redis:6379/0
-      - JWT_SECRET=changeme_jwt
-      - JWT_REFRESH_SECRET=changeme_refresh
-      - PUBLIC_BASE_URL=http://192.168.0.135:4000
+      - JWT_SECRET=${JWT_SECRET:-changeme_jwt}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-changeme_refresh}
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:4000}
+      - NODE_ENV=${NODE_ENV:-development}
+      # Supabase Storage (optional — only needed if using Supabase for local dev)
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-}
+      - SUPABASE_STORAGE_BUCKET=${SUPABASE_STORAGE_BUCKET:-evidence}
     command: sh -c "npm run migrate && npm run seed && node src/app.js"
     ports:
       - "4000:4000"
