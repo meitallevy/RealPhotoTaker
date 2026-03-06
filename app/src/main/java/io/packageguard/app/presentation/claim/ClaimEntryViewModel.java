@@ -1,3 +1,7 @@
+/**
+ * ViewModel behind the initial claim entry screen where buyers type seller + order info.
+ * Kicks off claim initiation on the backend and exposes loading / error state to the UI.
+ */
 package io.packageguard.app.presentation.claim;
 
 import android.content.Context;

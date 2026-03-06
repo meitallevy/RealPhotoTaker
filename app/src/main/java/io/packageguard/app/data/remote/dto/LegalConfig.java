@@ -1,3 +1,6 @@
+/**
+ * DTO holding legal text and consent-related configuration to be displayed during capture.
+ */
 package io.packageguard.app.data.remote.dto;
 
 public class LegalConfig {

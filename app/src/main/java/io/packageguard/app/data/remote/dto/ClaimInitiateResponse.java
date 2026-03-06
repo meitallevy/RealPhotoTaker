@@ -1,3 +1,7 @@
+/**
+ * Plain data holder (DTO) for the response when a buyer starts a new claim.
+ * Includes the generated claim id, nonce, server time, and any existing-claim shortcuts.
+ */
 package io.packageguard.app.data.remote.dto;
 
 public class ClaimInitiateResponse {

@@ -1,3 +1,17 @@
+/**
+ * claimService.js
+ *
+ * Core claim business logic. Handles the initiation of new buyer claims including:
+ *   – detecting already-open claims for the same seller + order (routes buyer to status screen)
+ *   – detecting MORE_INFO_REQUESTED claims (re-opens the claim with a fresh nonce)
+ *   – enforcing plan tier claim limits (returns 402 when exceeded)
+ *   – creating new claims in a DB transaction with a 6-digit nonce
+ *
+ * Main exports:
+ *   initiateClaim(payload)  – starts or re-opens a claim; returns claimId, nonce, upload config
+ *   getStatus(claimId)      – returns current processing status and result when complete
+ */
+
 const { v4: uuidv4 } = require('uuid');
 const db = require('../config/database');
 const { checkPlanLimit } = require('./planService');

@@ -1,3 +1,6 @@
+/**
+ * DTO representing a single line item within a claim (product being photographed).
+ */
 package io.packageguard.app.data.remote.dto;
 
 public class ClaimItemDto {

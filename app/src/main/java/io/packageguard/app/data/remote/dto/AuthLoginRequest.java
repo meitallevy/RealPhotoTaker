@@ -1,3 +1,6 @@
+/**
+ * DTO for the login request body (email and password).
+ */
 package io.packageguard.app.data.remote.dto;
 
 public class AuthLoginRequest {

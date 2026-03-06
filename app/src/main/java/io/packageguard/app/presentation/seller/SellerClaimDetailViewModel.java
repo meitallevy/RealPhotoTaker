@@ -1,3 +1,7 @@
+/**
+ * ViewModel that backs the seller claim detail screen.
+ * Fetches claim details, exposes them to the UI, and performs approve/reject actions.
+ */
 package io.packageguard.app.presentation.seller;
 
 import androidx.lifecycle.LiveData;

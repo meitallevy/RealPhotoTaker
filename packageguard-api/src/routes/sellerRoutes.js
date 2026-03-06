@@ -1,3 +1,17 @@
+/**
+ * sellerRoutes.js
+ *
+ * Authenticated seller routes — all require a valid JWT Bearer token (checked by the
+ * authenticate middleware). Mounted at /v1/seller in app.js.
+ *
+ * GET   /dashboard                            – stats, plan limits, seller ID
+ * GET   /claims                               – paginated claims list (filter by status/date)
+ * GET   /claims/:claimId                      – full claim detail with evidence (auto-marks viewed)
+ * GET   /claims/:claimId/evidence/:id/image   – stream evidence photo from Supabase Storage
+ * PATCH /claims/:claimId/review               – submit decision (APPROVED/REJECTED/MORE_INFO_REQUESTED)
+ * PATCH /settings                             – update email, webhook URL, notification preferences
+ */
+
 const express = require('express');
 const router = express.Router();
 

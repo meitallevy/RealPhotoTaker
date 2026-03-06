@@ -1,3 +1,7 @@
+/**
+ * Screen that shows a paginated list of all claims for the currently logged-in seller.
+ * Wires up the claims RecyclerView, pull-to-refresh, and navigation into claim details.
+ */
 package io.packageguard.app.presentation.seller;
 
 import android.content.Intent;

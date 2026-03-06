@@ -1,3 +1,7 @@
+/**
+ * ViewModel backing the seller registration screen.
+ * Performs the network call to create a new seller account and reports success or error text.
+ */
 package io.packageguard.app.presentation.auth;
 
 import androidx.lifecycle.LiveData;

@@ -1,3 +1,7 @@
+/**
+ * ViewModel for the seller login screen.
+ * Wraps the auth API call, exposes simple LiveData for status messages and login success.
+ */
 package io.packageguard.app.presentation.auth;
 
 import androidx.lifecycle.LiveData;

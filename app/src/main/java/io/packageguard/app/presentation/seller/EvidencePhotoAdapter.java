@@ -1,3 +1,7 @@
+/**
+ * RecyclerView adapter used on the seller side to preview all evidence photos in a claim.
+ * Presents thumbnail images and basic metadata in a scrollable list or gallery.
+ */
 package io.packageguard.app.presentation.seller;
 
 import android.view.LayoutInflater;

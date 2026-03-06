@@ -1,3 +1,7 @@
+/**
+ * Activity that displays the current status of a buyer's claim (e.g. pending, approved, rejected).
+ * Reads status information from the backend and shows a simple, read-only summary screen.
+ */
 package io.packageguard.app.presentation.claim;
 
 import android.content.Intent;

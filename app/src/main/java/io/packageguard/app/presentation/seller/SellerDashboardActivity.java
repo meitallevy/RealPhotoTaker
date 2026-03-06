@@ -1,3 +1,7 @@
+/**
+ * Main home screen for logged-in sellers.
+ * Shows high-level stats, navigation into claims lists, and links to other seller tools.
+ */
 package io.packageguard.app.presentation.seller;
 
 import android.content.ClipData;

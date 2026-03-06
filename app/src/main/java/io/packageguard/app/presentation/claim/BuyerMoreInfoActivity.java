@@ -1,3 +1,7 @@
+/**
+ * Activity that lets a buyer provide additional text context or clarifications for a claim.
+ * Sends the extra information to the backend so the seller can review it alongside photos.
+ */
 package io.packageguard.app.presentation.claim;
 
 import android.content.Intent;

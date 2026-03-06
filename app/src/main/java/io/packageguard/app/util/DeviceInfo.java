@@ -1,3 +1,7 @@
+/**
+ * Small utility class that gathers stable, non-sensitive identifiers about the device.
+ * Used to tag claims with device id, model, and OS version for troubleshooting.
+ */
 package io.packageguard.app.util;
 
 import android.content.Context;

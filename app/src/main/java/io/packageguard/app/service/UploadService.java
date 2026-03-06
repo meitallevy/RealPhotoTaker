@@ -1,3 +1,7 @@
+/**
+ * Background service responsible for uploading captured claim evidence photos to the backend.
+ * Handles long-running work outside of an Activity so uploads can continue if the UI is paused.
+ */
 package io.packageguard.app.service;
 
 import android.app.Notification;
@@ -8,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -25,8 +30,18 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
- * Foreground service that uploads evidence files to the server in the background.
- * Starts after the user taps Submit in ReviewSubmitActivity.
+ * UploadService
+ *
+ * Foreground Android service that uploads evidence photo files to the PackageGuard API in
+ * the background after the user taps Submit in ReviewSubmitActivity. Runs on a single
+ * background thread with a persistent notification showing upload progress.
+ *
+ * Key methods:
+ *   onStartCommand() – receives claimId, file paths, and server URL via Intent extras, then
+ *                      queues the upload job on an ExecutorService
+ *   uploadAllFiles() – iterates files, calls uploadFile() for each, then completeClaim()
+ *   uploadFile()     – POSTs a single photo as multipart/form-data to /v1/claims/{id}/evidence
+ *   completeClaim()  – POSTs totalEvidenceCount + buyerNotes to /v1/claims/{id}/complete
  */
 public class UploadService extends Service {
 
@@ -80,10 +95,13 @@ public class UploadService extends Service {
         return START_NOT_STICKY;
     }
 
+    private static final String TAG = "UploadService";
+
     private void uploadAllFiles(String claimId, ArrayList<String> filePaths,
                                 String accessToken, String serverUrl, String buyerNotes) {
         int total = filePaths.size();
         int uploaded = 0;
+        int failed = 0;
 
         for (String path : filePaths) {
             File file = new File(path);
@@ -94,18 +112,22 @@ public class UploadService extends Service {
                 uploadFile(claimId, file, uploaded + 1, accessToken, serverUrl);
                 uploaded++;
             } catch (Exception e) {
-                // Continue on individual file error
+                failed++;
+                Log.e(TAG, "File upload failed for " + path + ": " + e.getMessage(), e);
             }
         }
 
         try {
             updateNotification("Finalizing...", total, total);
-            completeClaim(claimId, total, buyerNotes, accessToken, serverUrl);
+            completeClaim(claimId, uploaded, buyerNotes, accessToken, serverUrl);
         } catch (Exception e) {
-            // Log error
+            Log.e(TAG, "completeClaim failed: " + e.getMessage(), e);
         }
 
-        updateNotification("Upload complete", total, total);
+        String finalText = failed > 0
+                ? "Upload done (" + failed + " file(s) failed — check Logcat)"
+                : "Upload complete";
+        updateNotification(finalText, total, total);
     }
 
     private void uploadFile(String claimId, File file, int sequence,

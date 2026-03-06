@@ -1,3 +1,14 @@
+/**
+ * SplashActivity
+ *
+ * App entry point shown briefly at launch. Checks whether the seller already has a saved
+ * session and routes immediately to the correct screen without displaying any interactive UI.
+ *
+ * Key logic:
+ *   onCreate() – SessionManager.isLoggedIn() == true  → SellerDashboardActivity
+ *                otherwise                            → RoleSelectionActivity (Buyer or Seller)
+ *                Calls finish() so the back button cannot return to this screen.
+ */
 package io.packageguard.app.presentation.splash;
 
 import android.content.Intent;

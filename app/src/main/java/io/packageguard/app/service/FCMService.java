@@ -1,3 +1,7 @@
+/**
+ * Firebase Cloud Messaging service hook for the app.
+ * Receives push notifications (e.g. claim updates) and can route them into local UI or storage.
+ */
 package io.packageguard.app.service;
 
 import android.app.NotificationChannel;

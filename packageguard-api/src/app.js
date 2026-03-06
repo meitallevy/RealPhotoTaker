@@ -1,3 +1,21 @@
+/**
+ * app.js
+ *
+ * Express application entry point. Loads environment variables, wires security middleware
+ * (Helmet, CORS), JSON body parsing, global rate limiting, all API route groups, and the
+ * global error handler. The HTTP server is started when Node runs this file.
+ *
+ * Routes mounted:
+ *   GET  /health         – liveness check → {"status":"ok"}
+ *   /v1/auth   → authRoutes    (register, login, token refresh)
+ *   /v1/config → configRoutes  (app settings, capture step definitions)
+ *   /v1/claims → claimRoutes   (buyer claim flow — no auth required)
+ *   /v1/seller → sellerRoutes  (seller operations — JWT required)
+ *   /v1/verify → verifyRoutes  (public verification report)
+ *
+ * Env vars: PORT (default 4000)
+ */
+
 require('dotenv').config();
 
 const express = require('express');

@@ -1,13 +1,20 @@
 /**
  * emailService.js
  *
- * Sends transactional emails via SendGrid.
- * Gracefully stubs (console.log only) when SENDGRID_API_KEY is not set,
- * so the app works in development without any email configuration.
+ * Sends transactional HTML emails via SendGrid.
+ * When SENDGRID_API_KEY is absent the functions print to the console instead of
+ * sending, so the app works in development without any email configuration.
  *
- * To activate:
- *   1. Set SENDGRID_API_KEY in .env / docker-compose.yml
- *   2. Set EMAIL_FROM to a verified sender address in your SendGrid account
+ * Main exports:
+ *   sendEmail(to, subject, html)              – low-level send; use the helpers below
+ *   claimCompletedHtml(claimId, verifyUrl)    – blue-branded email to seller: claim signed & ready
+ *   moreInfoRequestedHtml(claimId, note, seller) – orange email to buyer: seller needs more info
+ *   newClaimReceivedHtml(claimId, orderId, count, verifyUrl) – new claim notification to seller
+ *
+ * Env vars:
+ *   SENDGRID_API_KEY  – required to actually send (omit to use console stub)
+ *   EMAIL_FROM        – sender address (default: noreply@packageguard.io)
+ *   EMAIL_FROM_NAME   – sender display name (default: PackageGuard)
  */
 
 let sgMail = null;

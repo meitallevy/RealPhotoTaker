@@ -1,3 +1,6 @@
+/**
+ * DTO describing common pagination metadata (page number, page size, total count).
+ */
 package io.packageguard.app.data.remote.dto;
 
 public class PaginationDto {

@@ -1,3 +1,19 @@
+/**
+ * redis.js
+ *
+ * Thin wrapper around the Redis client for optional caching and session storage.
+ * The connection is established lazily on first use. If REDIS_URL is not set the
+ * client will fail silently on connect (errors are logged, not thrown), so the
+ * rest of the API continues to work without Redis.
+ *
+ * Main exports:
+ *   get(key)                  – retrieve a string value by key; returns null if missing
+ *   set(key, value, options)  – store a string value; pass { ttlSeconds } to auto-expire
+ *   client                    – the raw Redis client (for advanced operations)
+ *
+ * Env vars: REDIS_URL
+ */
+
 const { createClient } = require('redis');
 
 const client = createClient({

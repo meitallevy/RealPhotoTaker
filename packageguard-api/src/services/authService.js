@@ -1,3 +1,20 @@
+/**
+ * authService.js
+ *
+ * Handles seller registration, login, and JWT token refresh.
+ * On registration a new user + seller record are created in a single transaction.
+ * On login a short-lived access token (1 h) and a long-lived refresh token (7 d) are issued.
+ * On refresh the seller_id is re-fetched from the DB so the new access token contains all
+ * claims needed by the seller API endpoints (sub, sellerId, role).
+ *
+ * Main exports:
+ *   registerSeller(payload)  – create user + seller; returns { userId, sellerId }
+ *   login(payload)           – verify credentials; returns { accessToken, refreshToken }
+ *   refreshToken(token)      – issue new access token from a valid refresh token
+ *
+ * Env vars: JWT_SECRET, JWT_REFRESH_SECRET
+ */
+
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
@@ -108,13 +125,22 @@ async function login (payload) {
   };
 }
 
-async function refreshToken (refreshToken) {
+async function refreshToken (token) {
   try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+
+    // Re-fetch sellerId from DB so the new access token has the same claims as a fresh login.
+    // Without this, seller endpoints that read req.user.sellerId would get undefined after refresh.
+    const sellerRow = await db.query(
+      'SELECT seller_id FROM sellers WHERE user_id = $1 LIMIT 1',
+      [decoded.sub]
+    );
 
     const accessToken = jwt.sign(
       {
-        sub: decoded.sub
+        sub: decoded.sub,
+        sellerId: sellerRow.rows[0]?.seller_id || null,
+        role: 'seller'
       },
       process.env.JWT_SECRET,
       { expiresIn: ACCESS_TOKEN_TTL_SECONDS }

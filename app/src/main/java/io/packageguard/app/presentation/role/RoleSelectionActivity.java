@@ -1,3 +1,7 @@
+/**
+ * Simple launcher screen that asks whether the user is acting as a buyer or a seller.
+ * Routes to the appropriate authentication or claim entry flow based on the chosen role.
+ */
 package io.packageguard.app.presentation.role;
 
 import android.content.Intent;

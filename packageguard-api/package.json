@@ -5,13 +5,14 @@
   "main": "src/app.js",
   "scripts": {
     "dev": "nodemon src/app.js",
-    "start": "node src/app.js",
+    "start": "node src/migrations/runMigrations.js && node src/app.js",
     "migrate": "node src/migrations/runMigrations.js",
     "seed": "node seed.js",
     "lint": "eslint ."
   },
   "dependencies": {
     "@sendgrid/mail": "^8.0.0",
+    "@supabase/supabase-js": "^2.43.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -29,7 +30,7 @@
     "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-n": "^17.6.0",
+    "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-promise": "^6.1.1",
     "nodemon": "^3.1.0"
   },

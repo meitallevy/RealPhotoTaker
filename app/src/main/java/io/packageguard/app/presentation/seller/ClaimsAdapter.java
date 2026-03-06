@@ -1,3 +1,7 @@
+/**
+ * RecyclerView adapter that renders a list of claims for the seller.
+ * Binds basic claim metadata into card views and routes clicks to claim detail screens.
+ */
 package io.packageguard.app.presentation.seller;
 
 import android.graphics.Color;

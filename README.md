@@ -10,23 +10,22 @@ Native Android client + Node.js API demo for tamper-evident package photo captur
 ```bash
 cd packageguard-api
 npm install
-cp .env.example .env   # create this file from the example in the docs
-# Edit .env with your Supabase / Render DATABASE_URL and secrets
+cp env.example .env   # if .env does not already exist
+# Edit .env with your Supabase DATABASE_URL, JWT secrets, and storage/signing settings
 
 npm run migrate        # runs src/migrations over DATABASE_URL
 npm run seed           # optional: inserts demo seller and claim
 npm start              # starts API on PORT (default 4000)
 ```
 
-For Render:
+For Render, see `DEPLOYMENT.md` for a complete, step‑by‑step guide. At minimum you will need:
 
-- Root directory: `packageguard-api`
-- Build command: `npm install`
-- Start command: `npm start`
-- Env vars (Render dashboard):
-  - `DATABASE_URL` → Supabase connection string
-  - `PUBLIC_BASE_URL` → your Render URL, e.g. `https://realphototaker-api.onrender.com`
-  - `PORT`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `REDIS_URL` (optional), `UPLOAD_ROOT` (optional)
+- `DATABASE_URL` → Supabase connection string
+- `NODE_ENV` → `production`
+- `PUBLIC_BASE_URL` → your Render URL, e.g. `https://realphototaker-api.onrender.com`
+- `PORT`, `JWT_SECRET`, `JWT_REFRESH_SECRET`
+- `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET` (evidence photos)
+- `SIGNING_PRIVATE_KEY_PEM` (required in production for stable claim signatures)
 
 ## Database Schema (Supabase)
 

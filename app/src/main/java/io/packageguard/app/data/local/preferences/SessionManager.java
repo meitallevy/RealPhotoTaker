@@ -1,3 +1,22 @@
+/**
+ * SessionManager
+ *
+ * Secure, encrypted local storage for the seller's login session.
+ * Uses Android's EncryptedSharedPreferences (AES-256) so tokens are never stored in plaintext.
+ * Injected as a Hilt singleton — every screen that needs auth calls this class.
+ *
+ * Key methods:
+ *   saveSession()     – stores access token, refresh token, userId, and sellerId after login
+ *   getAccessToken()  – raw JWT access token
+ *   getBearerToken()  – ready-to-use "Bearer {token}" string for API Authorization headers
+ *   getSellerId()     – public seller_id string (e.g. "sel_abc123") shown to buyers
+ *   isLoggedIn()      – true if an access token is present (used by SplashActivity routing)
+ *   logout()          – clears all stored credentials
+ */
+/**
+ * Thin wrapper around SharedPreferences that stores the logged-in seller session.
+ * Provides helpers to check login state and read/write auth-related values.
+ */
 package io.packageguard.app.data.local.preferences;
 
 import android.content.Context;

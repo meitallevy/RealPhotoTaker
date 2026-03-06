@@ -1,3 +1,7 @@
+/**
+ * DTO for the full details of a single claim, including items and evidence summary.
+ * Used by the seller claim detail screen to render everything in one network call.
+ */
 package io.packageguard.app.data.remote.dto;
 
 import java.util.List;

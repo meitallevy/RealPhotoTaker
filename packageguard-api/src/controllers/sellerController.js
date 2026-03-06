@@ -1,5 +1,20 @@
-const fs = require('fs');
+/**
+ * sellerController.js
+ *
+ * All authenticated seller-facing operations. Every endpoint requires a valid JWT Bearer
+ * token; the decoded payload (including sellerId) is available on req.user.
+ *
+ * Main exports:
+ *   getDashboard(req, res, next)          – business stats, plan limits, seller ID for display
+ *   getClaims(req, res, next)             – paginated claims list; filter by status / date range
+ *   getClaimDetail(req, res, next)        – full claim with evidence items; auto-marks as viewed
+ *   getEvidenceImage(req, res, next)      – stream an evidence photo from Supabase Storage
+ *   reviewClaim(req, res, next)           – record APPROVED / REJECTED / MORE_INFO_REQUESTED
+ *   updateSettings(req, res, next)        – update account email, webhook URL, notifications
+ */
+
 const db = require('../config/database');
+const storageService = require('../services/storageService');
 const { getClaimCounts } = require('../services/planService');
 
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://localhost:4000';
@@ -282,15 +297,11 @@ async function getEvidenceImage (req, res, next) {
     }
 
     const { file_path, mime_type } = evidenceRes.rows[0];
-    if (!fs.existsSync(file_path)) {
-      const err = new Error('File not found on disk');
-      err.status = 404;
-      throw err;
-    }
+    const buffer = await storageService.downloadFile(file_path);
 
     res.setHeader('Content-Type', mime_type || 'image/jpeg');
     res.setHeader('Cache-Control', 'private, max-age=3600');
-    fs.createReadStream(file_path).pipe(res);
+    res.end(buffer);
   } catch (err) {
     next(err);
   }

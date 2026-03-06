@@ -1,3 +1,24 @@
+/**
+ * processClaimWorker.js
+ *
+ * Asynchronous post-upload pipeline executed after a buyer calls the /complete endpoint.
+ * Runs in the same Node process but outside the HTTP request/response cycle (via setImmediate).
+ * Each step is designed to be non-fatal for optional features (AI analysis, email, webhook).
+ *
+ * Pipeline steps:
+ *   1. Fetch claim + evidence items from DB
+ *   2. Run AI image authenticity analysis on each photo (optional, controlled by env vars)
+ *   3. Build a JSON manifest with evidence hashes and AI verdicts (deterministic key order)
+ *   4. SHA-256 hash the manifest + RSA-SHA256 sign the hash
+ *   5. Generate PDF report (stub; returns placeholder URL)
+ *   6. Update claim status to COMPLETED in the DB
+ *   7. Send email notification to the seller (optional, requires SENDGRID_API_KEY)
+ *   8. Fire webhook to the seller's webhook_url (optional, requires webhook_secret on seller)
+ *
+ * Main exports:
+ *   processClaim(claimId)  – runs the full pipeline; throws on fatal DB errors
+ */
+
 const crypto = require('crypto');
 
 const db = require('../config/database');
@@ -6,6 +27,7 @@ const { generateClaimPdf } = require('../services/pdfService');
 const { sendEmail, claimCompletedHtml } = require('../services/emailService');
 const { sendClaimCompletedWebhook } = require('../services/webhookService');
 const { analyzeImage } = require('../services/imageAnalysisService');
+const storageService = require('../services/storageService');
 
 /**
  * Evidence-processing pipeline.
@@ -27,7 +49,6 @@ async function processClaim (claimId) {
   }
   const claim = claimRes.rows[0];
 
-  // Include file_path + mime_type so AI analysis can read the file
   const evidenceRes = await db.query(
     `SELECT evidence_id, step_id, captured_at, file_hash, file_path, mime_type
      FROM evidence_items
@@ -41,7 +62,8 @@ async function processClaim (claimId) {
   const aiResults = {};
   for (const item of evidenceItems) {
     try {
-      const result = await analyzeImage(item.file_path, item.mime_type);
+      const buffer = await storageService.downloadFile(item.file_path);
+      const result = await analyzeImage(buffer, item.mime_type);
       if (result) {
         aiResults[item.evidence_id] = result;
         await db.query(

@@ -1,3 +1,7 @@
+/**
+ * ViewModel backing the seller dashboard screen.
+ * Loads summary statistics and recent claim information from the API and exposes it as LiveData.
+ */
 package io.packageguard.app.presentation.seller;
 
 import androidx.lifecycle.LiveData;

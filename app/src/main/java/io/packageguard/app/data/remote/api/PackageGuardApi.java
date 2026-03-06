@@ -1,3 +1,25 @@
+/**
+ * PackageGuardApi
+ *
+ * Retrofit interface that declares every HTTP endpoint the app talks to.
+ * Each method maps to one API route — Retrofit generates the actual HTTP calls at runtime.
+ * Pass "Bearer {token}" as the Authorization header for authenticated seller endpoints.
+ *
+ * Key endpoints:
+ *   register() / login()          – seller account creation and login
+ *   initiateClaim()               – buyer starts a new evidence claim
+ *   uploadEvidence()              – multipart upload of a single photo
+ *   completeClaim()               – signal that all photos have been uploaded
+ *   getClaimStatus()              – buyer polls for processing status
+ *   getSellerDashboard()          – seller home screen stats
+ *   getSellerClaims()             – paginated list of incoming claims
+ *   getClaimDetail()              – full claim detail with evidence items
+ *   reviewClaim()                 – seller submits APPROVED / REJECTED / MORE_INFO_REQUESTED
+ */
+/**
+ * Retrofit interface defining all HTTP calls from the Android app to the PackageGuard API.
+ * Each method corresponds to a backend endpoint for auth, claims, uploads, or seller data.
+ */
 package io.packageguard.app.data.remote.api;
 
 import io.packageguard.app.data.remote.dto.AuthLoginRequest;

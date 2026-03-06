@@ -1,3 +1,7 @@
+/**
+ * Simple registration screen for new sellers.
+ * Collects basic details, delegates to RegisterViewModel, and finishes when sign-up succeeds.
+ */
 package io.packageguard.app.presentation.auth;
 
 import android.os.Bundle;

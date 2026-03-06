@@ -1,3 +1,7 @@
+/**
+ * Detail screen for a single buyer claim as seen by the seller.
+ * Shows photos, metadata, and current decision, and allows the seller to approve or reject.
+ */
 package io.packageguard.app.presentation.seller;
 
 import android.app.Dialog;

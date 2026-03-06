@@ -1,3 +1,7 @@
+/**
+ * DTO containing the full capture configuration for a claim session.
+ * Includes steps, timeouts, defaults, and legal text that control how the camera flow behaves.
+ */
 package io.packageguard.app.data.remote.dto;
 
 import java.util.List;

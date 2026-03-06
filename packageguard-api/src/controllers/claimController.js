@@ -1,10 +1,26 @@
+/**
+ * claimController.js
+ *
+ * HTTP handlers for the buyer claim submission flow. No authentication is required —
+ * buyers do not have accounts. Evidence files are hashed, uploaded to Supabase Storage,
+ * and recorded in the database. Processing (AI analysis, signing, email) happens
+ * asynchronously after the complete() call.
+ *
+ * Main exports:
+ *   initiate(req, res, next)       – create a new claim; returns claimId + nonce
+ *   uploadEvidence(req, res, next) – receive a photo (single or chunked); hash + upload to storage
+ *   complete(req, res, next)       – mark uploads done; kick off processClaimWorker asynchronously
+ *   status(req, res, next)         – return current claim processing status
+ */
+
 const fs = require('fs');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
 const claimService = require('../services/claimService');
 const db = require('../config/database');
-const { getTempChunkPath, getFinalEvidencePath } = require('../config/storage');
+const { getTempChunkPath } = require('../config/storage');
+const storageService = require('../services/storageService');
 const { processClaim } = require('../workers/processClaimWorker');
 
 async function initiate (req, res, next) {
@@ -33,13 +49,14 @@ async function uploadEvidence (req, res, next) {
       throw err;
     }
 
-    // Single-chunk or simplified flow.
-    let finalPath;
+    let fileBuffer;
+
     if (totalChunks <= 1) {
-      finalPath = getFinalEvidencePath(claimId, uploadId, file.originalname);
-      fs.renameSync(file.path, finalPath);
+      // Single-chunk: read buffer and clean up multer's temp file
+      fileBuffer = fs.readFileSync(file.path);
+      fs.unlinkSync(file.path);
     } else {
-      // Chunked: store chunk, and if last chunk, assemble.
+      // Multi-chunk: save chunk to temp dir
       const tempPath = getTempChunkPath(uploadId, chunkIndex);
       fs.renameSync(file.path, tempPath);
 
@@ -52,21 +69,22 @@ async function uploadEvidence (req, res, next) {
         });
       }
 
-      // Last chunk: assemble all.
-      finalPath = getFinalEvidencePath(claimId, uploadId, file.originalname);
-      const writeStream = fs.createWriteStream(finalPath);
+      // Last chunk: assemble all chunks into one buffer, then clean up
+      const parts = [];
       for (let i = 0; i < totalChunks; i++) {
         const partPath = getTempChunkPath(uploadId, i);
-        const data = fs.readFileSync(partPath);
-        writeStream.write(data);
+        parts.push(fs.readFileSync(partPath));
         fs.unlinkSync(partPath);
       }
-      writeStream.end();
+      fileBuffer = Buffer.concat(parts);
     }
 
-    const fileBuffer = fs.readFileSync(finalPath);
     const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
     const evidenceId = `evd_${uuidv4().replace(/-/g, '').slice(0, 8)}`;
+
+    // Upload to Supabase Storage — path format: {claimId}/{evidenceId}
+    const storagePath = `${claimId}/${evidenceId}`;
+    await storageService.uploadFile(storagePath, fileBuffer, file.mimetype);
 
     await db.query(
       `INSERT INTO evidence_items (
@@ -82,9 +100,9 @@ async function uploadEvidence (req, res, next) {
         claimId,
         metadata.stepId || null,
         metadata.sequenceNumber || 1,
-        finalPath,
+        storagePath,
         `sha256:${hash}`,
-        file.size,
+        fileBuffer.length,
         file.mimetype,
         metadata.capturedAt || null,
         metadata.deviceTimezone || null,
@@ -119,7 +137,6 @@ async function complete (req, res, next) {
   try {
     const claimId = req.params.claimId;
 
-    // Mark claim as PROCESSING and trigger async worker.
     await db.query(
       `UPDATE claims SET status = 'PROCESSING' WHERE claim_id = $1`,
       [claimId]
@@ -159,4 +176,3 @@ module.exports = {
   complete,
   status
 };
-

@@ -1,3 +1,16 @@
+/**
+ * GuidedCaptureActivity
+ *
+ * Step-by-step camera screen where the buyer photographs their package.
+ * Walks the buyer through a sequence of predefined capture steps (label, front, back, damage)
+ * and saves each photo to the app's cache directory for upload in the next screen.
+ *
+ * Key logic:
+ *   startCamera()     – binds CameraX preview and ImageCapture to this Activity's lifecycle
+ *   capturePhoto()    – takes a photo, saves it to a temp file, advances to the next step
+ *   finishCapture()   – sends the list of photo file paths back to ClaimEntryActivity via result
+ *   updateDoneButton() – enables "Done" only once the minimum number of photos is reached
+ */
 package io.packageguard.app.presentation.claim;
 
 import android.Manifest;

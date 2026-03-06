@@ -1,3 +1,7 @@
+/**
+ * Simple confirmation screen shown to the buyer after completing the claim flow.
+ * Summarises what was submitted and may show next steps or a verification link.
+ */
 package io.packageguard.app.presentation.claim;
 
 import android.content.ClipData;

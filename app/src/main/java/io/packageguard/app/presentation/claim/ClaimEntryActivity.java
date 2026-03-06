@@ -1,3 +1,18 @@
+/**
+ * ClaimEntryActivity
+ *
+ * The buyer's first screen — they enter the Seller ID and their order reference to start a claim.
+ * Also handles the deep link "packageguard://claim?seller=sel_xxx" which pre-fills the seller ID.
+ *
+ * Key logic:
+ *   onCreate()         – binds UI, reads deep link / intent extras, triggers API call on button tap
+ *   onClaimInitiated() – routes based on the API response:
+ *                        • alreadyOpen → BuyerClaimStatusActivity (read-only view)
+ *                        • moreInfoRequested → BuyerMoreInfoActivity (seller wants more photos)
+ *                        • fresh claim → GuidedCaptureActivity (take photos)
+ *   onActivityResult() – receives captured photo paths from GuidedCaptureActivity,
+ *                        then launches ReviewSubmitActivity
+ */
 package io.packageguard.app.presentation.claim;
 
 import android.content.Intent;

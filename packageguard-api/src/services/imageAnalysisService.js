@@ -17,25 +17,23 @@
  *   OPENAI_API_KEY=sk-...             (if provider=openai)
  */
 
-const fs = require('fs');
-
 const AI_ENABLED  = process.env.AI_ANALYSIS_ENABLED  === 'true';
 const AI_PROVIDER = (process.env.AI_ANALYSIS_PROVIDER || '').toLowerCase();
 
 /**
  * Analyse an evidence image for authenticity.
- * @param {string} filePath  Absolute path to the image on disk.
+ * @param {Buffer} buffer    Raw image bytes.
  * @param {string} mimeType  e.g. 'image/jpeg'
  * @returns {Promise<{verdict:string, confidence:number, details:string}|null>}
  */
-async function analyzeImage (filePath, mimeType) {
+async function analyzeImage (buffer, mimeType) {
   if (!AI_ENABLED) return null;
-  if (!filePath || !fs.existsSync(filePath)) return null;
+  if (!buffer || !Buffer.isBuffer(buffer) || buffer.length === 0) return null;
 
   try {
     switch (AI_PROVIDER) {
-      case 'anthropic': return await _analyzeWithAnthropic(filePath, mimeType);
-      case 'openai':    return await _analyzeWithOpenAI(filePath, mimeType);
+      case 'anthropic': return await _analyzeWithAnthropic(buffer, mimeType);
+      case 'openai':    return await _analyzeWithOpenAI(buffer, mimeType);
       default:
         // eslint-disable-next-line no-console
         console.warn(`[imageAnalysis] Unknown provider: "${AI_PROVIDER}". Set AI_ANALYSIS_PROVIDER=anthropic or openai.`);
@@ -53,21 +51,16 @@ async function analyzeImage (filePath, mimeType) {
 /*
  * ACTIVATION STEPS:
  *   1. cd packageguard-api && npm install @anthropic-ai/sdk
- *   2. Set ANTHROPIC_API_KEY in .env / docker-compose.yml
+ *   2. Set ANTHROPIC_API_KEY in .env / Render environment
  *   3. Uncomment the implementation below and remove the stub return.
  *
  * Recommended model: claude-3-haiku-20240307 (fast, cheap, vision-capable)
- *
- * The prompt instructs the model to reply with JSON only:
- *   { "verdict": "REAL|AI_GENERATED|SCREEN_CAPTURE|UNCERTAIN",
- *     "confidence": 0.0-1.0,
- *     "details": "one-sentence explanation" }
  */
-async function _analyzeWithAnthropic (filePath, mimeType) {
+async function _analyzeWithAnthropic (buffer, mimeType) {
   // const Anthropic = require('@anthropic-ai/sdk');
   // const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   //
-  // const imageData = fs.readFileSync(filePath).toString('base64');
+  // const imageData = buffer.toString('base64');
   // const mediaType = mimeType || 'image/jpeg';
   //
   // const message = await client.messages.create({
@@ -109,15 +102,14 @@ async function _analyzeWithAnthropic (filePath, mimeType) {
 /*
  * ACTIVATION STEPS:
  *   1. cd packageguard-api && npm install openai
- *   2. Set OPENAI_API_KEY in .env / docker-compose.yml
+ *   2. Set OPENAI_API_KEY in .env / Render environment
  *   3. Uncomment the implementation below and remove the stub return.
  */
-async function _analyzeWithOpenAI (filePath, mimeType) {
+async function _analyzeWithOpenAI (buffer, mimeType) {
   // const OpenAI = require('openai');
   // const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   //
-  // const imageData = fs.readFileSync(filePath).toString('base64');
-  // const dataUrl = `data:${mimeType || 'image/jpeg'};base64,${imageData}`;
+  // const dataUrl = `data:${mimeType || 'image/jpeg'};base64,${buffer.toString('base64')}`;
   //
   // const response = await client.chat.completions.create({
   //   model: 'gpt-4o-mini',

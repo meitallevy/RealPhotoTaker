@@ -27,9 +27,13 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            // ── Production API — update this to your Render service URL ──────────
+            buildConfigField "String", "API_BASE_URL", '"https://YOUR-SERVICE-NAME.onrender.com"'
         }
         debug {
             applicationIdSuffix ".debug"
+            // ── Local dev: emulator → host on port 4000 ──────────────────────────
+            buildConfigField "String", "API_BASE_URL", '"http://10.0.2.2:4000"'
         }
     }
 

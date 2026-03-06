@@ -1,3 +1,14 @@
+/**
+ * ReviewSubmitActivity
+ *
+ * Shows the buyer a thumbnail strip of captured photos and a notes field before submission.
+ * Once the buyer taps "Submit", the ViewModel uploads the photos one by one and calls
+ * completeClaim, then this screen navigates to ConfirmationActivity.
+ *
+ * Key logic:
+ *   onCreate()       – displays photo thumbnails from file paths, wires up submit button
+ *   onSubmitComplete() – receives the API response and launches ConfirmationActivity
+ */
 package io.packageguard.app.presentation.claim;
 
 import android.content.Intent;

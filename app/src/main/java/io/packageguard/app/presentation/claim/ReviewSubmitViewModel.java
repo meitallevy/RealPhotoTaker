@@ -1,3 +1,21 @@
+/**
+ * ReviewSubmitViewModel
+ *
+ * Handles all network calls for the review-and-submit step.
+ * Uploads photos one at a time (sequential, not parallel) to avoid overwhelming the server,
+ * then calls completeClaim once all uploads finish.
+ *
+ * Key methods:
+ *   uploadAndSubmit() – starts the sequential upload chain; call from the UI on Submit tap
+ *   uploadNextFile()  – recursive helper that uploads file[index] then calls itself for index+1
+ *   completeClaim()   – called after all files are uploaded; posts submitComplete LiveData on success
+ *
+ * LiveData:
+ *   getLoading()        – true while uploading
+ *   getStatusMessage()  – human-readable status string for display
+ *   getUploadProgress() – "Uploading X / N" progress text
+ *   getSubmitComplete() – ClaimCompleteResponse on success (triggers navigation to Confirmation)
+ */
 package io.packageguard.app.presentation.claim;
 
 import androidx.lifecycle.LiveData;

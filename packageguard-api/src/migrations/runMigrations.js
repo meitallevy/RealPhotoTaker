@@ -1,3 +1,20 @@
+/**
+ * runMigrations.js
+ *
+ * Schema migration runner. Reads all .sql files in the same directory, sorts them by
+ * filename (001_, 002_, …), skips any already recorded in the schema_migrations table,
+ * and applies the remainder in order inside individual transactions.
+ *
+ * Run automatically at API startup via the npm start script:
+ *   "start": "node src/migrations/runMigrations.js && node src/app.js"
+ *
+ * Can also be run standalone:
+ *   DATABASE_URL=... node src/migrations/runMigrations.js
+ *
+ * All migrations use IF NOT EXISTS so they are safely idempotent — running them twice
+ * has no effect. The schema_migrations table tracks which files have been applied.
+ */
+
 const fs = require('fs');
 const path = require('path');
 const db = require('../config/database');

@@ -1,3 +1,16 @@
+/**
+ * configController.js
+ *
+ * Delivers static or lightly-customised configuration to the Android app.
+ * Both endpoints are public (no auth) and cached by the client on startup.
+ *
+ * Main exports:
+ *   getAppConfig(req, res, next)     – app-level settings: minimum version, feature flags,
+ *                                      capture defaults, legal URLs
+ *   getCaptureConfig(req, res, next) – capture session settings: photo step instructions,
+ *                                      nonce overlay config, validation rules, timeout
+ */
+
 async function getAppConfig (req, res, next) {
   try {
     // For now, return a static config matching the spec.

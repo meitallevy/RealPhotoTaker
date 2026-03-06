@@ -1,5 +1,23 @@
+/**
+ * webhookService.js
+ *
+ * Delivers signed webhook notifications to seller-configured URLs when a claim is completed.
+ * Each request is signed with HMAC-SHA256 (using the seller's webhook_secret) so recipients
+ * can verify the payload is genuine without exposing the secret over the wire.
+ *
+ * Main exports:
+ *   sendClaimCompletedWebhook(seller, claim)
+ *     – POSTs a 'claim.completed' event to seller.webhook_url when configured.
+ *       No-ops silently when webhook_url or webhook_secret are absent.
+ *
+ * Signature format (X-PackageGuard-Signature header):
+ *   t={unix_timestamp},sha256={hex_hmac_of_"timestamp.body"}
+ */
+
 const crypto = require('crypto');
 const https = require('https');
+
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://localhost:4000';
 
 function signPayload (secret, payload, timestamp) {
   const body = JSON.stringify(payload);
@@ -46,7 +64,7 @@ async function sendClaimCompletedWebhook (seller, claim) {
       claimId: claim.claim_id,
       orderId: claim.order_id,
       evidenceCount: claim.evidence_count || 0,
-      verificationUrl: `https://verify.packageguard.io/${claim.claim_id}`,
+      verificationUrl: `${PUBLIC_BASE_URL}/v1/verify/${claim.claim_id}`,
       pdfReportUrl: claim.pdf_url
     }
   };

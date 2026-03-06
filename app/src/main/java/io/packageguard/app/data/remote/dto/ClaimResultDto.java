@@ -1,3 +1,7 @@
+/**
+ * DTO summarizing the outcome of a claim (approved, rejected, etc.).
+ * Used to show a concise result to the buyer after processing.
+ */
 package io.packageguard.app.data.remote.dto;
 
 public class ClaimResultDto {

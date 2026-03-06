@@ -1,3 +1,6 @@
+/**
+ * DTO combining all configuration needed by the app at startup (features, capture, legal, etc.).
+ */
 package io.packageguard.app.data.remote.dto;
 
 public class ConfigAppResponse {

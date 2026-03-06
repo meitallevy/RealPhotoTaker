@@ -1,3 +1,19 @@
+/**
+ * NetworkModule
+ *
+ * Hilt dependency injection module that wires up the entire networking stack as singletons.
+ * Provides one shared instance of Gson, OkHttpClient, Retrofit, and PackageGuardApi for the
+ * whole app — no manual instantiation needed anywhere else.
+ *
+ * The API base URL comes from BuildConfig.API_BASE_URL, set in app/build.gradle.
+ * To point at a different server (local dev, staging, production) change that value.
+ *
+ * Key providers:
+ *   provideGson()            – Gson JSON parser
+ *   provideOkHttpClient()    – HTTP client (add interceptors here for logging or auth)
+ *   provideRetrofit()        – Retrofit instance bound to API_BASE_URL
+ *   providePackageGuardApi() – generated Retrofit implementation of PackageGuardApi
+ */
 package io.packageguard.app.di;
 
 import com.google.gson.Gson;

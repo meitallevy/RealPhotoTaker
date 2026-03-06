@@ -1,3 +1,7 @@
+/**
+ * ViewModel for the seller claims list screen.
+ * Loads paginated claim data from the API and exposes it as observable state for the UI.
+ */
 package io.packageguard.app.presentation.seller;
 
 import androidx.lifecycle.LiveData;

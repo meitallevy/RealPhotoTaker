@@ -1,15 +1,37 @@
-const fs = require('fs');
+/**
+ * verifyController.js
+ *
+ * Public claim verification endpoint — no authentication required. Buyers and sellers
+ * share a verification URL; anyone can view a claim's evidence report.
+ *
+ * Main exports:
+ *   publicVerify(req, res, next)
+ *     – Detects the caller's Accept header and responds accordingly:
+ *       • Browser (text/html): returns a self-contained styled HTML report with embedded
+ *         photos (base64), seller decision chip, AI verdict chips, and manifest hash
+ *       • API client (application/json): returns structured JSON with the same data
+ *
+ * Helper functions (not exported):
+ *   buildHtml(claim, evidenceRows, verificationUrl)  – builds the full HTML report string
+ *   fileToDataUri(storagePath, mimeType)             – downloads photo → base64 data URI
+ *   aiVerdictChip(verdict)                           – renders colored AI badge HTML
+ *   decisionInfo(decision)                           – maps decision to label + color
+ *   formatDate(iso)                                  – human-readable timestamp
+ *   escHtml(str)                                     – escapes HTML special characters
+ */
+
 const db = require('../config/database');
+const storageService = require('../services/storageService');
 
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://localhost:4000';
 
 /* ── helpers ──────────────────────────────────────────────────────────── */
 
-function fileToDataUri (filePath, mimeType) {
+async function fileToDataUri (storagePath, mimeType) {
   try {
-    if (!filePath || !fs.existsSync(filePath)) return null;
-    const data = fs.readFileSync(filePath);
-    return `data:${mimeType || 'image/jpeg'};base64,${data.toString('base64')}`;
+    if (!storagePath) return null;
+    const buffer = await storageService.downloadFile(storagePath);
+    return `data:${mimeType || 'image/jpeg'};base64,${buffer.toString('base64')}`;
   } catch (_) {
     return null;
   }
@@ -46,14 +68,14 @@ function aiVerdictChip (verdict) {
   </div>`;
 }
 
-function buildHtml (claim, evidenceRows, verificationUrl) {
+async function buildHtml (claim, evidenceRows, verificationUrl) {
   const sigOk   = !!(claim.manifest_hash && claim.signature);
   const evCount = Number(claim.evidence_count || 0);
   const maskedOrder = claim.order_id
     ? `${claim.order_id.slice(0, 3)}****${claim.order_id.slice(-4)}`
     : '\u2014';
 
-  const dataUris = evidenceRows.map(e => fileToDataUri(e.file_path, e.mime_type));
+  const dataUris = await Promise.all(evidenceRows.map(e => fileToDataUri(e.file_path, e.mime_type)));
 
   const photoGrid = evidenceRows.length === 0 ? '' : `
       <div class="section-title">Evidence Photos (${evidenceRows.length})</div>
@@ -325,7 +347,7 @@ async function publicVerify (req, res, next) {
     // Browser request → HTML report
     if (req.accepts('html')) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return res.send(buildHtml(claim, evidenceRows, verificationUrl));
+      return res.send(await buildHtml(claim, evidenceRows, verificationUrl));
     }
 
     // API / JSON request

@@ -1,3 +1,6 @@
+/**
+ * DTO for the payload a seller sends when approving or rejecting a claim.
+ */
 package io.packageguard.app.data.remote.dto;
 
 public class SellerReviewRequest {

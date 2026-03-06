@@ -1,3 +1,8 @@
+/**
+ * Email/password login screen for sellers.
+ * Collects credentials from the user, calls LoginViewModel.login(), and navigates to the
+ * seller dashboard on success while showing simple status messages inline.
+ */
 package io.packageguard.app.presentation.auth;
 
 import android.os.Bundle;
