@@ -8,4 +8,5 @@ public class ClaimCompleteResponse {
     public String status;
     public int estimatedProcessingTime;
     public String statusCheckEndpoint;
+    public String verificationUrl;
 }

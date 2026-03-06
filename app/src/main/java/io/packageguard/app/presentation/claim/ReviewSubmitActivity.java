@@ -97,6 +97,9 @@ public class ReviewSubmitActivity extends AppCompatActivity {
         Intent intent = new Intent(this, ConfirmationActivity.class);
         intent.putExtra(ConfirmationActivity.EXTRA_CLAIM_ID, response.claimId);
         intent.putExtra(ConfirmationActivity.EXTRA_STATUS, response.status);
+        if (response.verificationUrl != null) {
+            intent.putExtra(ConfirmationActivity.EXTRA_VERIFICATION_URL, response.verificationUrl);
+        }
         startActivity(intent);
         finish();
     }

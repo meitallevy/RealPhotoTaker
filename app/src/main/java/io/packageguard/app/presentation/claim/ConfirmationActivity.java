@@ -25,6 +25,7 @@ public class ConfirmationActivity extends AppCompatActivity {
 
     public static final String EXTRA_CLAIM_ID = "claimId";
     public static final String EXTRA_STATUS = "status";
+    public static final String EXTRA_VERIFICATION_URL = "verificationUrl";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -33,6 +34,7 @@ public class ConfirmationActivity extends AppCompatActivity {
 
         String claimId = getIntent().getStringExtra(EXTRA_CLAIM_ID);
         String status = getIntent().getStringExtra(EXTRA_STATUS);
+        String verifyUrl = getIntent().getStringExtra(EXTRA_VERIFICATION_URL);
 
         TextView textClaimId = findViewById(R.id.textConfirmClaimId);
         TextView textStatus = findViewById(R.id.textConfirmStatus);
@@ -40,7 +42,10 @@ public class ConfirmationActivity extends AppCompatActivity {
         Button buttonCopyUrl = findViewById(R.id.buttonCopyUrl);
         Button buttonDone = findViewById(R.id.buttonDone);
 
-        String verifyUrl = "https://verify.packageguard.io/" + claimId;
+        // Fallback: construct URL from BuildConfig if not provided
+        if (verifyUrl == null || verifyUrl.isEmpty()) {
+            verifyUrl = io.packageguard.app.BuildConfig.API_BASE_URL + "/v1/verify/" + claimId;
+        }
 
         textClaimId.setText("Claim ID: " + claimId);
         textStatus.setText("Status: " + (status != null ? status : "PROCESSING"));

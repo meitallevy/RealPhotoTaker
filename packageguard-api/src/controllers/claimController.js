@@ -149,11 +149,13 @@ async function complete (req, res, next) {
       });
     });
 
+    const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://localhost:4000';
     res.json({
       claimId,
       status: 'PROCESSING',
       estimatedProcessingTime: 30,
-      statusCheckEndpoint: `/v1/claims/${claimId}/status`
+      statusCheckEndpoint: `/v1/claims/${claimId}/status`,
+      verificationUrl: `${PUBLIC_BASE_URL}/v1/verify/${claimId}`
     });
   } catch (err) {
     next(err);

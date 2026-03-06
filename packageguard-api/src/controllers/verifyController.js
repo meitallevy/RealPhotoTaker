@@ -71,9 +71,8 @@ function aiVerdictChip (verdict) {
 async function buildHtml (claim, evidenceRows, verificationUrl) {
   const sigOk   = !!(claim.manifest_hash && claim.signature);
   const evCount = Number(claim.evidence_count || 0);
-  const maskedOrder = claim.order_id
-    ? `${claim.order_id.slice(0, 3)}****${claim.order_id.slice(-4)}`
-    : '\u2014';
+  // Order reference is not sensitive data - show it in full
+  const orderDisplay = claim.order_id || '\u2014';
 
   const dataUris = await Promise.all(evidenceRows.map(e => fileToDataUri(e.file_path, e.mime_type)));
 
@@ -208,7 +207,7 @@ async function buildHtml (claim, evidenceRows, verificationUrl) {
   </div>
   <div class="header-actions">
     <button class="btn btn-outline" onclick="shareReport()">&#8679;&nbsp;Share</button>
-    <button class="btn btn-white" onclick="window.print()">&#8659;&nbsp;Print / Save PDF</button>
+    <button class="btn btn-white" onclick="printReport()">&#8659;&nbsp;Print / Save PDF</button>
   </div>
 </div>
 
@@ -233,7 +232,7 @@ async function buildHtml (claim, evidenceRows, verificationUrl) {
       </div>
       <div class="field">
         <div class="field-label">Order Reference</div>
-        <div class="field-value">${maskedOrder}</div>
+        <div class="field-value">${orderDisplay}</div>
       </div>
       <div class="field">
         <div class="field-label">Seller ID</div>
@@ -288,12 +287,60 @@ async function buildHtml (claim, evidenceRows, verificationUrl) {
   function shareReport() {
     var url = '${verificationUrl}';
     if (navigator.share) {
-      navigator.share({ title: 'PackageGuard Verification', url: url }).catch(function(){});
+      navigator.share({ 
+        title: 'PackageGuard Verification Report',
+        text: 'View this PackageGuard evidence verification report',
+        url: url 
+      }).catch(function(err) {
+        // Fallback to clipboard if share fails
+        copyToClipboard(url);
+      });
     } else {
-      navigator.clipboard.writeText(url).then(function() {
-        alert('Verification link copied to clipboard!');
-      }).catch(function() { prompt('Copy this link:', url); });
+      copyToClipboard(url);
     }
+  }
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        alert('Verification link copied to clipboard!');
+      }).catch(function() {
+        // Fallback for older browsers
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          alert('Verification link copied to clipboard!');
+        } catch (err) {
+          prompt('Copy this link:', text);
+        }
+        document.body.removeChild(textarea);
+      });
+    } else {
+      // Fallback for older browsers
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        alert('Verification link copied to clipboard!');
+      } catch (err) {
+        prompt('Copy this link:', text);
+      }
+      document.body.removeChild(textarea);
+    }
+  }
+
+  function printReport() {
+    // Trigger browser print dialog (Ctrl+P / Cmd+P)
+    window.print();
   }
 </script>
 </body>
@@ -351,15 +398,12 @@ async function publicVerify (req, res, next) {
     }
 
     // API / JSON request
-    const maskedOrderId = claim.order_id
-      ? `${claim.order_id.slice(0, 3)}****${claim.order_id.slice(-4)}`
-      : null;
-
+    // Order reference is not sensitive data - return in full
     res.json({
       valid: true,
       claim: {
         claimId: claim.claim_id,
-        orderId: maskedOrderId,
+        orderId: claim.order_id || null,
         sellerId: claim.seller_id,
         submittedAt: claim.created_at,
         evidenceCount: Number(claim.evidence_count || 0)
