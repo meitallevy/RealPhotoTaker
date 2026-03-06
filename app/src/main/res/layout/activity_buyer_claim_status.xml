@@ -125,7 +125,7 @@
                 android:id="@+id/buttonAddMoreInfo"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:text="📷 Add More Photos & Notes"
+                android:text="Add More Photos and Notes"
                 android:backgroundTint="@color/brand_secondary"
                 android:textColor="@color/white"
                 android:visibility="gone"
