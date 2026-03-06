@@ -8,6 +8,8 @@ public class ClaimStatusResponse {
     public String status;
     public String sellerDecision;
     public String sellerNote;
+    public String orderId;
+    public String sellerId;
     public String verificationUrl;
     public ClaimResultDto result;
 }

@@ -120,6 +120,17 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
+            <!-- Add More Info button (visible when MORE_INFO_REQUESTED) -->
+            <Button
+                android:id="@+id/buttonAddMoreInfo"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="📷 Add More Photos & Notes"
+                android:backgroundTint="@color/brand_secondary"
+                android:textColor="@color/white"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp" />
+
             <!-- View Verification Report button (visible only when COMPLETED) -->
             <Button
                 android:id="@+id/buttonViewReport"

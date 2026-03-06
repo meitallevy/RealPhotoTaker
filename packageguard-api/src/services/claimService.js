@@ -167,9 +167,12 @@ async function initiateClaim (payload) {
 
 async function getStatus (claimId) {
   const res = await db.query(
-    `SELECT claim_id, status, manifest_hash, signed_at, pdf_url,
-            seller_decision, seller_note
-     FROM claims WHERE claim_id = $1`,
+    `SELECT c.claim_id, c.status, c.manifest_hash, c.signed_at, c.pdf_url,
+            c.seller_decision, c.seller_note, c.order_id,
+            s.seller_id
+     FROM claims c
+     JOIN sellers s ON s.id = c.seller_id
+     WHERE c.claim_id = $1`,
     [claimId]
   );
   if (res.rowCount === 0) {
@@ -186,6 +189,8 @@ async function getStatus (claimId) {
     status: claim.status,
     sellerDecision: claim.seller_decision,
     sellerNote: claim.seller_note,
+    orderId: claim.order_id,
+    sellerId: claim.seller_id,
     verificationUrl: verificationUrl, // Always include verification URL so buyer can view report
     result: claim.status === 'COMPLETED'
       ? {
