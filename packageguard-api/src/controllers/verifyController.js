@@ -206,8 +206,8 @@ async function buildHtml (claim, evidenceRows, verificationUrl) {
     </div>
   </div>
   <div class="header-actions">
-    <button class="btn btn-outline" onclick="shareReport()">&#8679;&nbsp;Share</button>
-    <button class="btn btn-white" onclick="printReport()">&#8659;&nbsp;Print / Save PDF</button>
+    <button class="btn btn-outline" id="btn-share">&#8679;&nbsp;Share</button>
+    <button class="btn btn-white" id="btn-print">&#8659;&nbsp;Print / Save PDF</button>
   </div>
 </div>
 
@@ -287,7 +287,7 @@ async function buildHtml (claim, evidenceRows, verificationUrl) {
   (function() {
     var verificationUrl = '${verificationUrl.replace(/'/g, "\\'")}';
     
-    window.shareReport = function() {
+    function shareReport() {
       if (navigator.share) {
         navigator.share({ 
           title: 'PackageGuard Verification Report',
@@ -300,7 +300,7 @@ async function buildHtml (claim, evidenceRows, verificationUrl) {
       } else {
         copyToClipboard(verificationUrl);
       }
-    };
+    }
 
     function copyToClipboard(text) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -338,9 +338,19 @@ async function buildHtml (claim, evidenceRows, verificationUrl) {
       document.body.removeChild(textarea);
     }
 
-    window.printReport = function() {
+    function printReport() {
       window.print();
-    };
+    }
+
+    // Attach event listeners (script is at end of body, so DOM is ready)
+    var shareBtn = document.getElementById('btn-share');
+    var printBtn = document.getElementById('btn-print');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', shareReport);
+    }
+    if (printBtn) {
+      printBtn.addEventListener('click', printReport);
+    }
   })();
 </script>
 </body>

@@ -197,21 +197,47 @@ public class BuyerClaimStatusActivity extends AppCompatActivity {
             public void onResponse(Call<ClaimInitiateResponse> call, Response<ClaimInitiateResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     ClaimInitiateResponse resp = response.body();
-                    if (resp.moreInfoRequested && resp.nonce != null) {
+                    // Since we're already on the status screen showing MORE_INFO_REQUESTED,
+                    // proceed if we have a nonce and claimId (the backend will reopen the claim)
+                    // We prefer the same claimId, but will accept if backend returns a different one
+                    // (might happen if claim was already reopened)
+                    if (resp.nonce != null && resp.claimId != null && !resp.nonce.isEmpty() && !resp.claimId.isEmpty()) {
                         // Navigate to BuyerMoreInfoActivity
                         Intent intent = new Intent(BuyerClaimStatusActivity.this, BuyerMoreInfoActivity.class);
                         intent.putExtra(BuyerMoreInfoActivity.EXTRA_CLAIM_ID, resp.claimId);
                         intent.putExtra(BuyerMoreInfoActivity.EXTRA_NONCE, resp.nonce);
                         intent.putExtra(BuyerMoreInfoActivity.EXTRA_NONCE_EXPIRES_AT, resp.nonceExpiresAt);
-                        intent.putExtra(BuyerMoreInfoActivity.EXTRA_SELLER_NOTE, currentSellerNote);
+                        // Use sellerNote from response if available, otherwise use the one we stored
+                        String sellerNoteToUse = (resp.sellerNote != null && !resp.sellerNote.isEmpty()) 
+                                ? resp.sellerNote : currentSellerNote;
+                        intent.putExtra(BuyerMoreInfoActivity.EXTRA_SELLER_NOTE, sellerNoteToUse);
                         intent.putExtra(BuyerMoreInfoActivity.EXTRA_SELLER_ID, sellerId);
                         intent.putExtra(BuyerMoreInfoActivity.EXTRA_ORDER_ID, orderId);
                         startActivity(intent);
                     } else {
-                        Toast.makeText(BuyerClaimStatusActivity.this, "Unable to add more info at this time", Toast.LENGTH_SHORT).show();
+                        // More detailed error message for debugging
+                        String errorMsg = "Unable to add more info";
+                        if (resp.claimId == null || resp.claimId.isEmpty()) {
+                            errorMsg += ": missing claim ID";
+                        } else if (resp.nonce == null || resp.nonce.isEmpty()) {
+                            errorMsg += ": missing nonce";
+                        }
+                        Toast.makeText(BuyerClaimStatusActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                     }
                 } else {
-                    Toast.makeText(BuyerClaimStatusActivity.this, "Failed to initiate: " + response.code(), Toast.LENGTH_SHORT).show();
+                    // Handle error response
+                    String errorMsg = "Failed to initiate: " + response.code();
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorBody = response.errorBody().string();
+                            if (errorBody != null && !errorBody.isEmpty()) {
+                                errorMsg += " - " + errorBody;
+                            }
+                        }
+                    } catch (Exception e) {
+                        // Ignore parsing errors
+                    }
+                    Toast.makeText(BuyerClaimStatusActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                 }
             }
 
