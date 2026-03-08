@@ -8,7 +8,11 @@
     "start": "node src/migrations/runMigrations.js && node src/app.js",
     "migrate": "node src/migrations/runMigrations.js",
     "seed": "node seed.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build:frontend": "cd frontend && npm install && npm run build",
+    "build:all": "npm run build:frontend && npm run migrate",
+    "shopify:dev": "shopify app dev",
+    "shopify:deploy": "shopify app deploy"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.0.0",

@@ -15,7 +15,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { authenticate } = require('../middleware/auth');
+const { authenticate } = require('../middleware/authAbstraction');
 const sellerController = require('../controllers/sellerController');
 const sellerWebController = require('../controllers/sellerWebController');
 

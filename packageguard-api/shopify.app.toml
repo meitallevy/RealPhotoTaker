@@ -1,0 +1,41 @@
+# Shopify App Configuration
+# https://shopify.dev/docs/apps/tools/cli/configuration
+#
+# Replace placeholder values with your actual credentials from the Shopify Partners dashboard.
+# Run `shopify app dev` for local development (auto-fills URLs via ngrok tunnel).
+
+name = "PackageGuard"
+client_id = "YOUR_CLIENT_ID"         # Partners dashboard → App → API credentials
+application_url = "https://YOUR-APP-DOMAIN.com"
+embedded = true
+
+[access_scopes]
+scopes = "read_orders,write_orders"
+
+[auth]
+redirect_urls = [
+  "https://YOUR-APP-DOMAIN.com/auth/shopify/callback"
+]
+
+[webhooks]
+api_version = "2024-01"
+
+  [[webhooks.subscriptions]]
+  topics = ["app/uninstalled"]
+  uri    = "/webhooks/shopify/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = ["orders/create"]
+  uri    = "/webhooks/shopify/orders/create"
+
+  [[webhooks.subscriptions]]
+  topics = ["orders/updated"]
+  uri    = "/webhooks/shopify/orders/updated"
+
+[pos]
+embedded = false
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "YOUR-DEV-STORE.myshopify.com"
+include_config_on_deploy = true
